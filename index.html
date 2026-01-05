@@ -221,26 +221,26 @@ canvas{max-height:240px}
 <section data-section="player" hidden>
   <div class="card">
     <div class="grid-2">
-      <input id="playerSearchInput" placeholder="Username">
-      <button id="playerSearchBtn">Search</button>
+      <input id="playerInput" placeholder="Player Name">
+      <button onclick="searchPlayer()">Search</button>
     </div>
   </div>
+
   <div class="card">
     <h2 style="color:var(--cyan)">
-  Records For <span id="playerName">—</span>
-</h2>
+      Records For <span id="playerName">—</span>
+    </h2>
     <div class="stat">
       <h4>Faction</h4>
       <div class="val-cyan" id="playerFaction">—</div>
     </div>
   </div>
+
   <div class="grid-4">
     <div class="stat"><h4>Level</h4><div class="val-cyan" id="playerLevel">—</div></div>
     <div class="stat"><h4>Hours Played</h4><div class="val-cyan" id="playerHours">—</div></div>
     <div class="stat"><h4>Cash</h4><div class="val-green" id="playerCash">—</div></div>
-    <div class="stat"><h4>Bank</h4><div class="val-green" id="playerBank">—</div>
-    <div class="stat"><h4>Fleeca Bank</h4><div class="val-cyan">₦0</div></div>
-    <div class="stat"><h4>Crimes</h4><div class="val-danger">0</div></div>
+    <div class="stat"><h4>Bank</h4><div class="val-green" id="playerBank">—</div></div>
   </div>
   <div class="card">
     <h3>Vehicles</h3>
@@ -992,6 +992,34 @@ document.getElementById("playerSearchBtn").onclick = async () => {
     alert("API error");
   }
 };
+
+async function searchPlayer() {
+  const name = document.getElementById("playerInput").value.trim();
+  if (!name) return alert("Enter player name");
+
+  try {
+    const res = await fetch(`${API_BASE}/player/${encodeURIComponent(name)}`);
+    if (!res.ok) throw new Error("Player not found");
+
+    const data = await res.json();
+
+    document.getElementById("playerName").textContent = data.username;
+    document.getElementById("playerFaction").textContent =
+      data.faction_name
+        ? `${data.faction_name} (Rank ${data.factionrank})`
+        : "Civilian";
+
+    document.getElementById("playerLevel").textContent = data.level;
+    document.getElementById("playerHours").textContent = data.hours;
+    document.getElementById("playerCash").textContent = `₦${data.cash}`;
+    document.getElementById("playerBank").textContent = `₦${data.bank}`;
+
+  } catch (err) {
+    alert("Player not found");
+    console.error(err);
+  }
+}
+     
 </script>
 
 </body>
