@@ -221,22 +221,24 @@ canvas{max-height:240px}
 <section data-section="player" hidden>
   <div class="card">
     <div class="grid-2">
-      <input value="Mr_Abolo">
-      <button>Search</button>
+      <input id="playerSearchInput" placeholder="Username">
+      <button id="playerSearchBtn">Search</button>
     </div>
   </div>
   <div class="card">
-    <h2 style="color:var(--cyan)">Records For Mr_Abolo</h2>
+    <h2 style="color:var(--cyan)">
+  Records For <span id="playerName">—</span>
+</h2>
     <div class="stat">
       <h4>Faction</h4>
-      <div class="val-cyan">Police (Rank 17)</div>
+      <div class="val-cyan" id="playerFaction">—</div>
     </div>
   </div>
   <div class="grid-4">
-    <div class="stat"><h4>Level</h4><div class="val-cyan">1</div></div>
-    <div class="stat"><h4>Hours Played</h4><div class="val-cyan">20</div></div>
-    <div class="stat"><h4>Cash</h4><div class="val-green">₦600</div></div>
-    <div class="stat"><h4>Bank</h4><div class="val-green">₦899,340</div></div>
+    <div class="stat"><h4>Level</h4><div class="val-cyan" id="playerLevel">—</div></div>
+    <div class="stat"><h4>Hours Played</h4><div class="val-cyan" id="playerHours">—</div></div>
+    <div class="stat"><h4>Cash</h4><div class="val-green" id="playerCash">—</div></div>
+    <div class="stat"><h4>Bank</h4><div class="val-green" id="playerBank">—</div>
     <div class="stat"><h4>Fleeca Bank</h4><div class="val-cyan">₦0</div></div>
     <div class="stat"><h4>Crimes</h4><div class="val-danger">0</div></div>
   </div>
@@ -466,7 +468,532 @@ function initCharts(){
     options:{plugins:{legend:{display:false}},indexAxis:'y'}
   });
 }
+
+document.getElementById("playerSearchBtn").onclick = async () => {
+  const username = document.getElementById("playerSearchInput").value.trim();
+  if (!username) return alert("Enter username");
+
+  try {
+    const res = await fetch(`https://soc-kvmz.onrender.com/player/${encodeURIComponent(username)}`);
+    if (!res.ok) {
+      alert("Player not found");
+      return;
+    }
+
+    const p = await res.json();
+
+    document.getElementById("playerName").textContent = p.username;
+    document.getElementById("playerFaction").textContent = p.faction ?? "None";
+    document.getElementById("playerLevel").textContent = p.level;
+    document.getElementById("playerHours").textContent = p.hours;
+    document.getElementById("playerCash").textContent = `₦${p.cash}`;
+    document.getElementById("playerBank").textContent = `₦${p.bank}`;
+  } catch (e) {
+    console.error(e);
+    alert("API error");
+  }
+};
 </script>
 
 </body>
-</html>
+                                           </html>
+                                                                    <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NV:RP Admin Panel</title>
+
+<!-- PHASE 5.9 – ADMIN LOGS MERGED INTO PHASE 5.7 (CONTROLLED, ADDITIVE ONLY) -->
+<!-- PHASE 6.4 – FACTION LOGS REPLACED IN-PLACE (STRICT, NO OTHER CHANGES) -->
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<style>
+:root{
+  --bg:#070b12;
+  --panel:#0e1420;
+  --panel-2:#121a28;
+  --text:#e5e7eb;
+  --muted:#9ca3af;
+  --green:#4cff2a;
+  --cyan:#2fffd8;
+  --danger:#ff4d4d;
+  --radius:14px;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto;
+  background:radial-gradient(1200px 600px at top,#0f1c2d,#070b12 60%);
+  color:var(--text);
+}
+header{
+  position:sticky;top:0;z-index:50;
+  height:56px;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 16px;
+  background:linear-gradient(180deg,#0c1626,#09101a);
+  border-bottom:1px solid #101827;
+}
+.brand{font-weight:800;font-size:20px;color:#3dff00;}
+.menu-btn{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;background:#0f172a;}
+.menu-btn span{width:18px;height:2px;background:#e5e7eb;display:block;position:relative;}
+.menu-btn span::before,.menu-btn span::after{content:"";position:absolute;left:0;width:18px;height:2px;background:#e5e7eb;}
+.menu-btn span::before{top:-6px}
+.menu-btn span::after{top:6px}
+
+.sidebar{
+  position:fixed;top:0;left:0;height:100%;width:280px;
+  background:#0b1320;transform:translateX(-100%);
+  transition:transform .3s ease;z-index:100;padding:16px;
+}
+.sidebar.active{transform:translateX(0)}
+.overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.5);
+  opacity:0;pointer-events:none;transition:.3s;z-index:90;
+}
+.overlay.active{opacity:1;pointer-events:auto}
+
+.nav a{
+  display:flex;align-items:center;
+  padding:12px;border-radius:10px;
+  color:var(--text);text-decoration:none;
+}
+.nav a.active{
+  background:#111827;
+  border-left:3px solid #3dff00;
+}
+
+main{padding:16px}
+.card{
+  background:linear-gradient(180deg,#0f172a,#0b1320);
+  border-radius:var(--radius);
+  padding:16px;margin-bottom:16px;
+  border:1px solid #101827;
+}
+.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
+.grid-4{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
+@media(min-width:768px){.grid-4{grid-template-columns:repeat(4,1fr);}}
+
+.stat{
+  background:#0f172a;
+  border-radius:12px;
+  padding:14px;
+}
+.stat h4{margin:0;font-size:13px;color:var(--muted)}
+.stat .val-green{color:var(--green);font-size:22px;font-weight:800}
+.stat .val-cyan{color:var(--cyan);font-size:20px;font-weight:700}
+.stat .val-danger{color:var(--danger);font-size:20px;font-weight:700}
+
+input,select,textarea{
+  width:100%;
+  background:#0f172a;
+  border:1px solid #1f2937;
+  border-radius:10px;
+  padding:12px;
+  color:var(--text);
+}
+textarea{resize:none}
+button{
+  background:var(--green);
+  color:#000;
+  border:none;
+  padding:10px 14px;
+  border-radius:10px;
+  font-weight:800;
+}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-muted{background:#1f2937;color:#e5e7eb}
+
+.value-green{color:var(--green);font-size:30px;font-weight:800}
+.value-cyan{color:var(--cyan);font-size:22px;font-weight:700}
+.value-danger{color:var(--danger);font-size:14px}
+.list li{
+  display:grid;
+  grid-template-columns:1fr auto auto;
+  gap:8px;
+  align-items:center;
+  padding:8px 0;border-bottom:1px solid #111827;
+}
+.badge{
+  padding:4px 8px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:700;
+}
+.badge-pending{background:#1f2937;color:#facc15}
+.badge-approved{background:#022c22;color:#4cff2a}
+.badge-denied{background:#2a0f0f;color:#ff4d4d}
+.badge-success{background:#022c22;color:#4cff2a}
+.badge-action{background:#1f2937;color:#2fffd8}
+.badge-warning{background:#2a0f0f;color:#ff4d4d}
+.badge-join{background:#022c22;color:#4cff2a}
+.badge-leave{background:#2a0f0f;color:#ff4d4d}
+.badge-rank{background:#1f2937;color:#2fffd8}
+
+.table-header,.table-row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  padding:10px;
+}
+.table-header{color:var(--cyan);font-weight:700}
+.table-row{border-top:1px solid #111827}
+
+canvas{max-height:240px}
+.muted{color:var(--muted)}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="brand">NV:RP Admin</div>
+  <div class="menu-btn" id="menuBtn"><span></span></div>
+</header>
+
+<div class="sidebar" id="sidebar">
+  <h2 style="color:#3dff00">NV:RP</h2>
+  <nav class="nav">
+    <a data-link="dashboard" onclick="showSection('dashboard')">Dashboard</a>
+    <a data-link="economy" onclick="showSection('economy')">Economy</a>
+    <a data-link="events" onclick="showSection('events')">Events</a>
+    <a data-link="player" onclick="showSection('player')">Player Lookup</a>
+    <a data-link="applications" onclick="showSection('applications')">Applications</a>
+    <a data-link="donations" onclick="showSection('donations')">Donations</a>
+    <hr style="border-color:#111827;margin:12px 0">
+    <a data-link="adminlogs" onclick="showSection('adminlogs')">Admin Logs</a>
+    <a data-link="factionlogs" onclick="showSection('factionlogs')">Faction Logs</a>
+    <a data-link="ganglogs" onclick="showSection('ganglogs')">Gang Logs</a>
+  </nav>
+</div>
+<div class="overlay" id="overlay"></div>
+
+<main>
+
+<section data-section="dashboard">
+  <div class="card"><h3>Dashboard</h3><p class="muted">Summary only.</p></div>
+</section>
+
+<section data-section="economy" hidden>
+  <div class="card">
+    <h2>Economy</h2>
+    <div class="value-green">₦3,899,940</div>
+    <div class="value-danger">-99.72% vs Yesterday</div>
+  </div>
+  <div class="grid-4">
+    <div class="card"><h4>Yesterday</h4><div class="value-cyan">₦1,386,152,722</div></div>
+    <div class="card"><h4>7 Days Ago</h4><div class="value-cyan">₦0</div></div>
+    <div class="card"><h4>Government</h4><div class="value-cyan">₦0</div></div>
+    <div class="card"><h4>Treasury Delta</h4><div class="value-danger">-99.7%</div></div>
+  </div>
+  <div class="card"><h3>30-Day Circulation Trend</h3><canvas id="circulationChart"></canvas></div>
+  <div class="card"><h3>Wealth Distribution</h3><canvas id="wealthChart"></canvas></div>
+  <div class="card"><h3>Top Vehicles</h3><canvas id="vehicleChart"></canvas></div>
+</section>
+
+<section data-section="events" hidden>
+  <div class="card"><h2>Event Management</h2></div>
+  <div class="card">
+    <h3>Schedule Event</h3>
+    <div class="grid-2">
+      <input placeholder="Event Name">
+      <input placeholder="Prize Amount">
+      <input placeholder="Event Date">
+      <input placeholder="Max Participants">
+    </div>
+    <textarea placeholder="Event Description" style="margin-top:8px"></textarea>
+    <button style="margin-top:12px">Schedule Event</button>
+  </div>
+  <div class="card">
+    <h3>Pay Winner</h3>
+    <div class="grid-2">
+      <input placeholder="Player Name">
+      <input placeholder="Amount">
+      <input placeholder="Reason">
+      <select><option>Cash</option><option>Bank</option></select>
+    </div>
+    <button style="margin-top:12px">Pay</button>
+  </div>
+</section>
+
+<section data-section="player" hidden>
+  <div class="card">
+    <div class="grid-2">
+      <input id="playerSearchInput" placeholder="Username">
+      <button id="playerSearchBtn">Search</button>
+    </div>
+  </div>
+  <div class="card">
+    <h2 style="color:var(--cyan)">
+  Records For <span id="playerName">—</span>
+</h2>
+    <div class="stat">
+      <h4>Faction</h4>
+      <div class="val-cyan" id="playerFaction">—</div>
+    </div>
+  </div>
+  <div class="grid-4">
+    <div class="stat"><h4>Level</h4><div class="val-cyan" id="playerLevel">—</div></div>
+    <div class="stat"><h4>Hours Played</h4><div class="val-cyan" id="playerHours">—</div></div>
+    <div class="stat"><h4>Cash</h4><div class="val-green" id="playerCash">—</div></div>
+    <div class="stat"><h4>Bank</h4><div class="val-green" id="playerBank">—</div>
+    <div class="stat"><h4>Fleeca Bank</h4><div class="val-cyan">₦0</div></div>
+    <div class="stat"><h4>Crimes</h4><div class="val-danger">0</div></div>
+  </div>
+  <div class="card">
+    <h3>Vehicles</h3>
+    <div class="table-header"><div>MODEL ID</div><div>TICKETS</div></div>
+    <div class="table-row"><div>585</div><div>0</div></div>
+    <div class="table-row"><div>400</div><div>0</div></div>
+    <div class="table-row"><div>506</div><div>0</div></div>
+  </div>
+  <div class="card">
+    <h3>Property Logs</h3>
+    <ul class="list">
+      <li><span>Lamborghini Revuelto</span><span>₦6,000,000</span></li>
+      <li><span>Mercedes GLK</span><span>₦1,200,000</span></li>
+      <li><span>Lexus IS250</span><span>₦550,000</span></li>
+    </ul>
+  </div>
+</section>
+
+<section data-section="applications" hidden>
+  <div class="card">
+    <h2>Applications</h2>
+    <p class="muted">Review and process player applications.</p>
+  </div>
+  <div class="card">
+    <h3>Pending Applications</h3>
+    <ul class="list">
+      <li>
+        <span>Police Application – Mr_Abolo</span>
+        <span class="badge badge-pending">Pending</span>
+        <div>
+          <button>View</button>
+          <button class="btn-danger">Deny</button>
+        </div>
+      </li>
+      <li>
+        <span>Medic Application – JUST_MIDE</span>
+        <span class="badge badge-pending">Pending</span>
+        <div>
+          <button>View</button>
+          <button class="btn-danger">Deny</button>
+        </div>
+      </li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3>Reviewed Applications</h3>
+    <ul class="list">
+      <li>
+        <span>Gang Application – Mr_Vibez</span>
+        <span class="badge badge-approved">Approved</span>
+        <button class="btn-muted">View</button>
+      </li>
+      <li>
+        <span>Faction Application – Gaynor_Cavanaugh</span>
+        <span class="badge badge-denied">Denied</span>
+        <button class="btn-muted">View</button>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<section data-section="donations" hidden>
+  <div class="card">
+    <h2>Donations</h2>
+    <p class="muted">Track and manage server donations.</p>
+  </div>
+  <div class="card">
+    <h3>Manual Donation Credit</h3>
+    <div class="grid-2">
+      <input placeholder="Player Name">
+      <input placeholder="Amount">
+      <select>
+        <option>Cash</option>
+        <option>Bank</option>
+        <option>Premium Points</option>
+      </select>
+      <input placeholder="Reference / Note">
+    </div>
+    <button style="margin-top:12px">Credit Donation</button>
+  </div>
+  <div class="card">
+    <h3>Recent Donations</h3>
+    <ul class="list">
+      <li>
+        <span>Mr_Abolo donated ₦50,000</span>
+        <span class="badge badge-success">Credited</span>
+      </li>
+      <li>
+        <span>JUST_MIDE donated ₦20,000</span>
+        <span class="badge badge-success">Credited</span>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<section data-section="adminlogs" hidden>
+  <div class="card">
+    <h2>Admin Logs</h2>
+    <p class="muted">Track administrative actions performed in-game.</p>
+  </div>
+  <div class="card">
+    <h3>Recent Actions</h3>
+    <ul class="list">
+      <li>
+        <span>JUST_MIDE jailed Mr_Abolo (30 mins)</span>
+        <span class="badge badge-action">JAIL</span>
+      </li>
+      <li>
+        <span>Admin Vibez banned Cheater_01</span>
+        <span class="badge badge-warning">BAN</span>
+      </li>
+      <li>
+        <span>Moderator Gaynor muted PlayerX</span>
+        <span class="badge badge-action">MUTE</span>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<!-- REPLACED IN-PLACE: FACTION LOGS -->
+<section data-section="factionlogs" hidden>
+  <div class="card">
+    <h2>Faction Logs</h2>
+    <p class="muted">Monitor faction joins, leaves, and rank changes.</p>
+  </div>
+  <div class="card">
+    <h3>Recent Faction Activity</h3>
+    <ul class="list">
+      <li>
+        <span>Mr_Abolo joined Police Department</span>
+        <span class="badge badge-join">JOIN</span>
+      </li>
+      <li>
+        <span>JUST_MIDE promoted to Rank 5 (Police)</span>
+        <span class="badge badge-rank">PROMOTION</span>
+      </li>
+      <li>
+        <span>PlayerX removed from Medic Faction</span>
+        <span class="badge badge-leave">REMOVED</span>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<section data-section="ganglogs" hidden>
+  <div class="card">
+    <h2>Gang Logs</h2>
+    <p class="muted">Track gang-related activities and changes.</p>
+  </div>
+
+  <div class="card">
+    <h3>Recent Gang Activity</h3>
+    <ul class="list">
+      <li>
+        <span>Mr_Vibez joined Bloods Gang</span>
+        <span class="badge badge-gang">JOIN</span>
+      </li>
+      <li>
+        <span>PlayerX promoted to Shot Caller (Bloods)</span>
+        <span class="badge badge-gang">PROMOTION</span>
+      </li>
+      <li>
+        <span>Cheater_01 removed from Ballas</span>
+        <span class="badge badge-gang">REMOVED</span>
+      </li>
+    </ul>
+  </div>
+</section>
+
+</main>
+
+<script>
+const sidebar=document.getElementById('sidebar');
+const overlay=document.getElementById('overlay');
+const menuBtn=document.getElementById('menuBtn');
+
+const API_BASE = "https://soc-kvmz.onrender.com";
+
+menuBtn.onclick=()=>{sidebar.classList.toggle('active');overlay.classList.toggle('active');};
+overlay.onclick=()=>{sidebar.classList.remove('active');overlay.classList.remove('active');};
+
+function sendAdminLog() {
+  fetch("https://soc-kvmz.onrender.com/logs", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      type: "JAIL",
+      author: "AdminName",
+      message: "jailed PlayerX for 30 mins"
+    })
+  });
+}
+
+function showSection(name){
+  document.querySelectorAll('[data-section]').forEach(s=>{
+    s.hidden = s.dataset.section !== name;
+  });
+  document.querySelectorAll('.nav a').forEach(a=>a.classList.remove('active'));
+  const active=document.querySelector(`.nav a[data-link="${name}"]`);
+  if(active) active.classList.add('active');
+  sidebar.classList.remove('active');
+  overlay.classList.remove('active');
+  if(name==='economy') initCharts();
+}
+
+let chartsMounted=false;
+function initCharts(){
+  if(chartsMounted) return;
+  chartsMounted=true;
+  new Chart(document.getElementById('circulationChart'),{
+    type:'line',
+    data:{labels:['D1','D7','D14','D21','D30'],datasets:[{data:[1.3,1.1,0.9,0.6,0.003],borderColor:'#2fffd8'}]},
+    options:{plugins:{legend:{display:false}}}
+  });
+  new Chart(document.getElementById('wealthChart'),{
+    type:'doughnut',
+    data:{labels:['Rich','Others'],datasets:[{data:[4,18],backgroundColor:['#2fffd8','#1f2937']}]},
+    options:{plugins:{legend:{display:false}}}
+  });
+  new Chart(document.getElementById('vehicleChart'),{
+    type:'bar',
+    data:{labels:['585','506','575','602'],datasets:[{data:[5,3,2,1],backgroundColor:'#4cff2a'}]},
+    options:{plugins:{legend:{display:false}},indexAxis:'y'}
+  });
+}
+
+document.getElementById("playerSearchBtn").onclick = async () => {
+  const username = document.getElementById("playerSearchInput").value.trim();
+  if (!username) return alert("Enter username");
+
+  try {
+    const res = await fetch(`https://soc-kvmz.onrender.com/player/${encodeURIComponent(username)}`);
+    if (!res.ok) {
+      alert("Player not found");
+      return;
+    }
+
+    const p = await res.json();
+
+    document.getElementById("playerName").textContent = p.username;
+    document.getElementById("playerFaction").textContent = p.faction ?? "None";
+    document.getElementById("playerLevel").textContent = p.level;
+    document.getElementById("playerHours").textContent = p.hours;
+    document.getElementById("playerCash").textContent = `₦${p.cash}`;
+    document.getElementById("playerBank").textContent = `₦${p.bank}`;
+  } catch (e) {
+    console.error(e);
+    alert("API error");
+  }
+};
+</script>
+
+</body>
+  </html>
+  
