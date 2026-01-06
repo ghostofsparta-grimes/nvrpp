@@ -1,0 +1,2005 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GC:RP Admin Panel</title>
+
+<!-- PHASE 5.9 – ADMIN LOGS MERGED INTO PHASE 5.7 (CONTROLLED, ADDITIVE ONLY) -->
+<!-- PHASE 6.4 – FACTION LOGS REPLACED IN-PLACE (STRICT, NO OTHER CHANGES) -->
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<style>
+:root{
+  --bg:#070b12;
+  --panel:#0e1420;
+  --panel-2:#121a28;
+  --text:#e5e7eb;
+  --muted:#9ca3af;
+  --green:#4cff2a;
+  --cyan:#2fffd8;
+  --danger:#ff4d4d;
+  --radius:14px;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto;
+  background:radial-gradient(1200px 600px at top,#0f1c2d,#070b12 60%);
+  color:var(--text);
+}
+header{
+  position:sticky;top:0;z-index:50;
+  height:56px;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 16px;
+  background:linear-gradient(180deg,#0c1626,#09101a);
+  border-bottom:1px solid #101827;
+}
+.brand{font-weight:800;font-size:20px;color:#3dff00;}
+.menu-btn{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;background:#0f172a;}
+.menu-btn span{width:18px;height:2px;background:#e5e7eb;display:block;position:relative;}
+.menu-btn span::before,.menu-btn span::after{content:"";position:absolute;left:0;width:18px;height:2px;background:#e5e7eb;}
+.menu-btn span::before{top:-6px}
+.menu-btn span::after{top:6px}
+
+.sidebar{
+  position:fixed;top:0;left:0;height:100%;width:280px;
+  background:#0b1320;transform:translateX(-100%);
+  transition:transform .3s ease;z-index:100;padding:16px;
+}
+.sidebar.active{transform:translateX(0)}
+.overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.5);
+  opacity:0;pointer-events:none;transition:.3s;z-index:90;
+}
+.overlay.active{opacity:1;pointer-events:auto}
+
+.nav a{
+  display:flex;align-items:center;
+  padding:12px;border-radius:10px;
+  color:var(--text);text-decoration:none;
+}
+.nav a.active{
+  background:#111827;
+  border-left:3px solid #3dff00;
+}
+
+main{padding:16px}
+.card{
+  background:linear-gradient(180deg,#0f172a,#0b1320);
+  border-radius:var(--radius);
+  padding:16px;margin-bottom:16px;
+  border:1px solid #101827;
+}
+.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
+.grid-4{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
+@media(min-width:768px){.grid-4{grid-template-columns:repeat(4,1fr);}}
+
+.stat{
+  background:#0f172a;
+  border-radius:12px;
+  padding:14px;
+}
+.stat h4{margin:0;font-size:13px;color:var(--muted)}
+.stat .val-green{color:var(--green);font-size:22px;font-weight:800}
+.stat .val-cyan{color:var(--cyan);font-size:20px;font-weight:700}
+.stat .val-danger{color:var(--danger);font-size:20px;font-weight:700}
+
+input,select,textarea{
+  width:100%;
+  background:#0f172a;
+  border:1px solid #1f2937;
+  border-radius:10px;
+  padding:12px;
+  color:var(--text);
+}
+textarea{resize:none}
+button{
+  background:var(--green);
+  color:#000;
+  border:none;
+  padding:10px 14px;
+  border-radius:10px;
+  font-weight:800;
+}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-muted{background:#1f2937;color:#e5e7eb}
+
+/* ===== PLAYER LOOKUP UX ===== */
+
+.loading {
+  margin-top: 12px;
+  text-align: center;
+  color: var(--cyan);
+  font-weight: 700;
+  animation: pulse 1.1s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: .3; }
+  50% { opacity: 1; }
+  100% { opacity: .3; }
+}
+
+.fade-in {
+  animation: fadeInUp 0.35s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.eco-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 12px;
+}
+
+.eco-table th {
+  text-align: left;
+  font-size: 13px;
+  color: var(--muted);
+  padding-bottom: 8px;
+}
+
+.eco-table td {
+  padding: 10px 0;
+  border-top: 1px solid #111827;
+  font-weight: 700;
+}
+
+.eco-table td:last-child {
+  text-align: right;
+}
+
+.eco-table {
+  width: 100%;
+  table-layout: fixed;
+}
+
+.eco-table td {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.eco-table td:nth-child(2) {
+  text-align: right;
+}
+
+.eco-table td:first-child {
+  white-space: normal;
+  word-break: break-word;
+}
+
+.card {
+  overflow: hidden;
+}
+
+.card canvas {
+  overflow: visible !important;
+}
+
+#vehicleChart {
+  height: 260px;
+  max-height: 260px;
+}
+
+/* ===== GANG MEMBERS FIX ===== */
+#gangMembersList {
+  max-height: 320px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+#gangMembersList li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+
+  padding: 8px 0;
+  border-bottom: 1px solid #111827;
+
+  white-space: nowrap;
+}
+
+#gangMembersList span:first-child {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#gangMembersList::-webkit-scrollbar {
+  width: 6px;
+}
+
+#gangMembersList::-webkit-scrollbar-thumb {
+  background: #1f2937;
+  border-radius: 6px;
+}
+
+.value-green{color:var(--green);font-size:30px;font-weight:800}
+.value-cyan{color:var(--cyan);font-size:22px;font-weight:700}
+.value-danger{color:var(--danger);font-size:14px}
+.list li{
+  display:grid;
+  grid-template-columns:1fr auto auto;
+  gap:8px;
+  align-items:center;
+  padding:8px 0;border-bottom:1px solid #111827;
+}
+.badge{
+  padding:4px 8px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:700;
+}
+.badge-pending{background:#1f2937;color:#facc15}
+.badge-approved{background:#022c22;color:#4cff2a}
+.badge-denied{background:#2a0f0f;color:#ff4d4d}
+.badge-success{background:#022c22;color:#4cff2a}
+.badge-action{background:#1f2937;color:#2fffd8}
+.badge-warning{background:#2a0f0f;color:#ff4d4d}
+.badge-join{background:#022c22;color:#4cff2a}
+.badge-leave{background:#2a0f0f;color:#ff4d4d}
+.badge-rank{background:#1f2937;color:#2fffd8}
+
+.table-header,.table-row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  padding:10px;
+}
+.table-header{color:var(--cyan);font-weight:700}
+.table-row{border-top:1px solid #111827}
+
+.fade-in {
+  animation: fadeIn 0.4s ease forwards;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+body.light {
+  --bg: #f3f4f6;
+  --panel: #ffffff;
+  --panel-2: #f9fafb;
+  --text: #111827;
+  --muted: #6b7280;
+  --green: #16a34a;
+  --cyan: #0891b2;
+  --danger: #dc2626;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto;
+  background: var(--bg);
+  color: var(--text);
+}
+
+canvas{max-height:240px}
+.muted{color:var(--muted)}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="brand">GC:RP Admin</div>
+  <button id="themeToggle" class="menu-btn" title="Toggle theme">
+  🌙
+</button>
+  <div class="menu-btn" id="menuBtn"><span></span></div>
+</header>
+
+<div class="sidebar" id="sidebar">
+  <h2 style="color:#3dff00">GC:RP</h2>
+  <nav class="nav">
+    <a data-link="dashboard" onclick="showSection('dashboard')">Dashboard</a>
+    <a data-link="economy" onclick="showSection('economy')">Economy</a>
+    <a data-link="events" onclick="showSection('events')">Events</a>
+    <a data-link="player" onclick="showSection('player')">Player Lookup</a>
+    <a data-link="applications" onclick="showSection('applications')">Applications</a>
+    <a data-link="donations" onclick="showSection('donations')">Donations</a>
+    <hr style="border-color:#111827;margin:12px 0">
+    <a data-link="adminlogs" onclick="showSection('adminlogs')">Admin Logs</a>
+    <a data-link="factionlogs" onclick="showSection('factionlogs')">Faction Logs</a>
+    <a data-link="ganglogs" onclick="showSection('ganglogs')">Gang Logs</a>
+  </nav>
+</div>
+<div class="overlay" id="overlay"></div>
+
+<main>
+
+<section data-section="dashboard">
+
+  <!-- DASHBOARD HEADER -->
+  <div class="card">
+    <h3>Dashboard</h3>
+    <p class="muted">Summary only.</p>
+  </div>
+  
+  <!-- SERVER STATUS -->
+<div class="card" id="serverStatusCard">
+  <h3>🖥️ Server Status</h3>
+
+  <div class="grid-4">
+    <div class="stat">
+      <h4>Status</h4>
+      <div id="serverOnline" class="val-cyan">—</div>
+    </div>
+
+    <div class="stat">
+      <h4>Players</h4>
+      <div id="serverPlayers" class="val-green">—</div>
+    </div>
+
+    <div class="stat">
+      <h4>Gamemode</h4>
+      <div id="serverGamemode" class="val-cyan">—</div>
+    </div>
+
+    <div class="stat">
+      <h4>Hostname</h4>
+      <div id="serverHostname" class="val-cyan">—</div>
+    </div>
+  </div>
+</div>
+
+<!-- PLAYER LIST -->
+<div class="card" id="onlinePlayersCard">
+  <h3>👥 Online Players</h3>
+  <ul class="list" id="onlinePlayersList">
+    <li class="muted">Loading players…</li>
+  </ul>
+</div>
+
+  <!-- RICHEST GANGS -->
+  <!-- RICHEST GANGS -->
+<div class="card">
+  <h3>💀 Richest Gangs</h3>
+  <ul class="list" id="richestGangList">
+    <li class="muted">Loading gangs…</li>
+  </ul>
+</div>
+
+<!-- GANG PROFILE -->
+<div class="card" id="gangProfileCard" hidden>
+
+  <h3>🏴 Gang Profile</h3>
+
+  <!-- NAME -->
+  <div class="stat" style="margin-bottom:12px">
+    <h4>Name</h4>
+    <div class="val-cyan" id="gangName">—</div>
+  </div>
+
+  <!-- STATS GRID -->
+  <div class="grid-4">
+    <div class="stat">
+      <h4>Leader</h4>
+      <div class="val-cyan" id="gangLeader">—</div>
+    </div>
+
+    <div class="stat">
+      <h4>Cash</h4>
+      <div class="val-green" id="gangCash">—</div>
+    </div>
+
+    <div class="stat">
+      <h4>Materials</h4>
+      <div class="val-cyan" id="gangMaterials">—</div>
+    </div>
+
+    <div class="stat">
+      <h4>Total Wealth</h4>
+      <div class="val-green" id="gangTotal">—</div>
+    </div>
+  </div>
+
+  <!-- MEMBERS (OUTSIDE GRID) -->
+  <div class="card" style="margin-top:16px">
+    <h3>👥 Members</h3>
+
+    <ul class="list" id="gangMembersList">
+      <li class="muted">Loading members…</li>
+    </ul>
+  </div>
+
+  <div style="margin-top:12px">
+    <button class="btn-muted" onclick="closeGangProfile()">Close Profile</button>
+  </div>
+
+</div>
+<!-- FACTIONS -->
+<div class="card">
+  <h3>🛡️ Factions</h3>
+
+  <ul class="list" id="factionList">
+    <li class="muted">Loading factions…</li>
+  </ul>
+</div>
+<div class="card" id="factionProfileCard" hidden>
+  <h3>🛡️ Faction Profile</h3>
+
+  <div class="stat" style="margin-bottom:12px">
+    <h4>Name</h4>
+    <div class="val-cyan" id="factionName">—</div>
+    <div class="muted" id="factionShort">—</div>
+  </div>
+
+  <div class="grid-4">
+    <div class="stat">
+      <h4>Leader</h4>
+      <div class="val-cyan" id="factionLeader">—</div>
+    </div>
+
+    <div class="stat">
+      <h4>Type</h4>
+      <div class="val-cyan" id="factionType">—</div>
+    </div>
+
+    <div class="stat">
+      <h4>Ranks</h4>
+      <div class="val-cyan" id="factionRanks">—</div>
+    </div>
+
+    <div class="stat">
+      <h4>Turf Tokens</h4>
+      <div class="val-green" id="factionTokens">—</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:12px">
+    <h3>👥 Members</h3>
+    <ul class="list" id="factionMembersList">
+      <li class="muted">Loading members…</li>
+    </ul>
+  </div>
+
+  <div style="margin-top:12px">
+    <button class="btn-muted" onclick="closeFactionProfile()">Close Profile</button>
+  </div>
+</div>
+
+</section>
+
+<section data-section="economy" hidden>
+  <div class="card">
+    <h2>Economy</h2>
+    <div class="value-green" id="ecoCirculation">$</div>
+    <div class="value-danger">-99.72% vs Yesterday</div>
+  </div>
+
+  <div class="card">
+  <h3>Economy Breakdown</h3>
+  <table class="eco-table">
+    <thead>
+      <tr>
+        <th>Metric</th>
+        <th>Value</th>
+        <th>Change</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Yesterday</td>
+        <td id="ecoTblYesterday">$</td>
+        <td id="ecoTblDelta" class="value-danger">—</td>
+      </tr>
+
+      <tr>
+        <td>7 Days Ago</td>
+        <td id="ecoTbl7Days">$</td>
+        <td>—</td>
+      </tr>
+
+      <tr>
+        <td>Government Funds</td>
+        <td id="ecoTblGovernment">$</td>
+        <td>—</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+  <div class="card">
+    <h3>30-Day Circulation Trend</h3>
+    <canvas id="circulationChart"></canvas>
+  </div>
+
+  <div class="card">
+    <h3>Wealth Distribution</h3>
+    <canvas id="wealthChart"></canvas>
+  </div>
+
+  <div class="card">
+    <h3>Top Vehicles</h3>
+    <canvas id="vehicleChart"></canvas>
+  </div>
+  
+  <div class="card">
+  <h3>Richest Players</h3>
+
+  <table class="eco-table">
+    <thead>
+      <tr>
+        <th>Player</th>
+        <th>Total Wealth</th>
+      </tr>
+    </thead>
+    <tbody id="ecoRichestList">
+      <tr>
+        <td class="muted">Loading…</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+</section>
+
+<section data-section="events" hidden>
+  <div class="card"><h2>Event Management</h2></div>
+  <div class="card">
+    <h3>Schedule Event</h3>
+    <div class="grid-2">
+      <input id="eventName" placeholder="Event Name">
+      <input id="eventPrize" placeholder="Prize Amount">
+      <input id="eventDate" type="datetime-local">
+      <input id="eventMax" placeholder="Max Participants">
+    </div>
+    <textarea id="eventDesc" placeholder="Event Description" style="margin-top:8px"></textarea>
+    <button onclick="scheduleEvent()">Schedule Event</button>
+  </div>
+  <div class="card">
+    <h3>Pay Winner</h3>
+    <div class="grid-2">
+      <input id="payPlayerName" placeholder="Player Name">
+      <input id="payAmount" type="number" placeholder="Amount">
+      <input id="payReason" placeholder="Reason">
+      <select id="payMethod"><option value="cash">Cash</option><option value="bank">Bank</option></select>
+    </div>
+    <button id="payWinnerBtn" style="margin-top:12px">Pay</button>
+  </div>
+  <div class="card">
+  <h3> Pay Player (Cash)</h3>
+
+  <div class="grid-2">
+    <input id="payCashUsername" placeholder="Player Username">
+    <input id="payCashAmount" type="number" placeholder="Amount">
+  </div>
+
+  <input
+    id="payCashReason"
+    placeholder="Reason (optional)"
+    style="margin-top:8px"
+  >
+
+  <button style="margin-top:12px" onclick="payPlayerCash()">
+    Pay Cash
+  </button>
+
+  <p class="muted" id="payCashStatus" style="margin-top:8px"></p>
+</div>
+  
+</section>
+
+<section data-section="player" hidden>
+
+  <!-- SEARCH BAR (always visible) -->
+  <div class="card">
+    <div class="grid-2">
+      <input id="playerSearchInput" placeholder="Username">
+      <button id="playerSearchBtn">Search</button>
+      <button id="playerClearBtn" class="btn-muted">Clear</button>
+    </div>
+
+    <!-- 🔄 LOADING -->
+    <div id="playerLoading" class="muted" hidden>
+      Searching player…
+    </div>
+  </div>
+
+  <!-- PLAYER DATA (hidden until search) -->
+  <div id="playerResults" hidden>
+
+    <!-- RECORD HEADER -->
+    <div class="card">
+      <h2 style="color:var(--cyan)">
+        Records For <span id="playerName">—</span>
+      </h2>
+
+      <div class="stat">
+        <h4>Faction</h4>
+        <div class="val-cyan" id="playerFaction">—</div>
+      </div>
+    </div>
+
+    <!-- STATS GRID -->
+    <div class="grid-4">
+      <div class="stat">
+        <h4>Level</h4>
+        <div class="val-cyan" id="playerLevel">—</div>
+      </div>
+
+      <div class="stat">
+        <h4>Hours</h4>
+        <div class="val-cyan" id="playerHours">—</div>
+      </div>
+
+      <div class="stat">
+        <h4>Cash</h4>
+        <div class="val-green" id="playerCash">—</div>
+      </div>
+
+      <div class="stat">
+        <h4>Bank</h4>
+        <div class="val-green" id="playerBank">—</div>
+      </div>
+
+      <div class="stat">
+        <h4>Fleeca</h4>
+        <div class="val-cyan" id="playerFleeca">—</div>
+      </div>
+
+      <div class="stat">
+        <h4>Crimes</h4>
+        <div class="val-danger">0</div>
+      </div>
+    </div>
+
+    <!-- VEHICLES -->
+    <div class="card">
+      <h3 style="display:flex;justify-content:space-between;align-items:center;">Vehicles<button id="toggleVehicles" class="btn-muted">Hide</button></h3>
+      <div id="vehiclesBlock">
+      <div class="table-header">
+        <div>MODEL ID</div>
+        <div>TICKETS</div>
+      </div>
+      <div id="vehicleRows"></div>
+    </div>
+
+    <!-- PROPERTY -->
+<div class="card">
+  <h3>Property</h3>
+
+  <h4 class="muted">Houses</h4>
+  <ul class="list" id="houseList">
+    <li class="muted">No houses loaded</li>
+  </ul>
+
+  <h4 class="muted" style="margin-top:12px">Businesses</h4>
+  <ul class="list" id="businessList">
+    <li class="muted">No businesses loaded</li>
+  </ul>
+</div>
+
+  </div>
+</section>
+
+<section data-section="applications" hidden>
+  <div class="card">
+    <h2>Applications</h2>
+    <p class="muted">Review and process player applications.</p>
+  </div>
+  <div class="card">
+    <h3>Pending Applications</h3>
+    <ul class="list">
+      <li>
+        <span>Police Application – Mr_Abolo</span>
+        <span class="badge badge-pending">Pending</span>
+        <div>
+          <button>View</button>
+          <button class="btn-danger">Deny</button>
+        </div>
+      </li>
+      <li>
+        <span>Medic Application – JUST_MIDE</span>
+        <span class="badge badge-pending">Pending</span>
+        <div>
+          <button>View</button>
+          <button class="btn-danger">Deny</button>
+        </div>
+      </li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3>Reviewed Applications</h3>
+    <ul class="list">
+      <li>
+        <span>Gang Application – Mr_Vibez</span>
+        <span class="badge badge-approved">Approved</span>
+        <button class="btn-muted">View</button>
+      </li>
+      <li>
+        <span>Faction Application – Gaynor_Cavanaugh</span>
+        <span class="badge badge-denied">Denied</span>
+        <button class="btn-muted">View</button>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<section data-section="donations" hidden>
+  <div class="card">
+    <h2>Donations</h2>
+    <p class="muted">Track and manage server donations.</p>
+  </div>
+  <div class="card">
+    <h3>Manual Donation Credit</h3>
+    <div class="grid-2">
+      <input placeholder="Player Name">
+      <input placeholder="Amount">
+      <select>
+        <option>Cash</option>
+        <option>Bank</option>
+        <option>Premium Points</option>
+      </select>
+      <input placeholder="Reference / Note">
+    </div>
+    <button style="margin-top:12px">Credit Donation</button>
+  </div>
+  <div class="card">
+    <h3>Recent Donations</h3>
+    <ul class="list">
+      <li>
+        <span>Mr_Abolo donated ₦50,000</span>
+        <span class="badge badge-success">Credited</span>
+      </li>
+      <li>
+        <span>JUST_MIDE donated ₦20,000</span>
+        <span class="badge badge-success">Credited</span>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<section data-section="adminlogs" hidden>
+  <div class="card">
+    <h2>Admin Logs</h2>
+    <p class="muted">Track administrative actions performed in-game.</p>
+  </div>
+
+  <div class="card">
+    <!-- SEARCH -->
+    <div class="grid-2" style="margin-bottom:12px">
+      <input
+        id="adminSearchInput"
+        placeholder="Search admin name (e.g. Bruno_Mendez)"
+      >
+      <button id="adminSearchBtn">Search</button>
+    </div>
+
+    <h3>Recent Actions</h3>
+    <ul class="list" id="adminLogList">
+      <li class="muted">Loading admin logs…</li>
+    </ul>
+
+    <!-- PAGINATION -->
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">
+      <button id="adminPrevBtn" class="btn-muted">Previous</button>
+      <span id="adminPageLabel" class="muted">Page 1</span>
+      <button id="adminNextBtn" class="btn-muted">Next</button>
+    </div>
+  </div>
+</section>
+
+<!-- REPLACED IN-PLACE: FACTION LOGS -->
+<section data-section="factionlogs" hidden>
+  <div class="card">
+    <h2>Faction Logs</h2>
+    <p class="muted">Monitor faction joins, leaves, and rank changes.</p>
+  </div>
+
+  <div class="card">
+    <h3>Recent Faction Activity</h3>
+
+    <ul class="list" id="factionLogList">
+      <li class="muted">Loading faction logs…</li>
+    </ul>
+
+    <!-- PAGINATION -->
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">
+      <button id="factionPrevBtn" class="btn-muted">Previous</button>
+      <span id="factionPageLabel" class="muted">Page 1</span>
+      <button id="factionNextBtn" class="btn-muted">Next</button>
+    </div>
+  </div>
+</section>
+
+<section data-section="ganglogs" hidden>
+  <div class="card">
+    <h2>Gang Logs</h2>
+    <p class="muted">Track gang-related activities and changes.</p>
+  </div>
+
+  <div class="card">
+    <h3>Recent Gang Activity</h3>
+
+    <ul class="list" id="gangLogList">
+      <li class="muted">Loading gang logs…</li>
+    </ul>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">
+      <button id="gangPrevBtn" class="btn-muted">Previous</button>
+      <span id="gangPageLabel" class="muted">Page 1</span>
+      <button id="gangNextBtn" class="btn-muted">Next</button>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<script>
+/* ===============================
+   BASIC UI CONTROLS
+================================ */
+const sidebar = document.getElementById("sidebar");
+const overlay = document.getElementById("overlay");
+const menuBtn = document.getElementById("menuBtn");
+
+const API_BASE = "https://soc-kvmz.onrender.com";
+
+const loading = document.getElementById("playerLoading");
+const clearBtn = document.getElementById("playerClearBtn");
+
+clearBtn.onclick = () => {
+  document.getElementById("playerResults").hidden = true;
+  document.getElementById("playerSearchInput").value = "";
+};
+
+const toggleBtn = document.getElementById("toggleVehicles");
+const vehiclesBlock = document.getElementById("vehiclesBlock");
+
+toggleBtn.onclick = () => {
+  const hidden = vehiclesBlock.hidden;
+  vehiclesBlock.hidden = !hidden;
+  toggleBtn.textContent = hidden ? "Hide" : "Show";
+};
+
+function formatMoneyShort(n) {
+  n = Number(n);
+  if (n >= 1e12) return `₦${(n / 1e12).toFixed(2)}T`;
+  if (n >= 1e9) return `₦${(n / 1e9).toFixed(2)}B`;
+  if (n >= 1e6) return `₦${(n / 1e6).toFixed(2)}M`;
+  return `₦${n.toLocaleString()}`;
+}
+
+menuBtn.onclick = () => {
+  sidebar.classList.toggle("active");
+  overlay.classList.toggle("active");
+};
+
+overlay.onclick = () => {
+  sidebar.classList.remove("active");
+  overlay.classList.remove("active");
+};
+
+document.getElementById("adminNextBtn").onclick = () => {
+  adminLogPage++;
+  loadAdminLogs();
+};
+
+document.getElementById("adminPrevBtn").addEventListener("click", () => {
+  if (adminLogPage > 1) {
+    adminLogPage--;
+    loadAdminLogs();
+  }
+});
+
+document.getElementById("adminSearchInput").addEventListener("keydown", e => {
+  if (e.key === "Enter") {
+    document.getElementById("adminSearchBtn").click();
+  }
+});
+
+let adminLogPage = 1;
+let adminLogTotalPages = 1;
+let adminSearch = "";
+let factionLogPage = 1;
+let gangLogPage = 1;
+
+// Search button
+document.getElementById("adminSearchBtn").addEventListener("click", () => {
+  adminSearch = document.getElementById("adminSearchInput").value.trim();
+  adminLogPage = 1; // reset page on new search
+  loadAdminLogs();
+});
+
+// Enter key support
+document.getElementById("adminSearchInput")
+  .addEventListener("keydown", e => {
+    if (e.key === "Enter") {
+      document.getElementById("adminSearchBtn").click();
+    }
+  });
+ 
+ document.getElementById("gangNextBtn").onclick = () => {
+  gangLogPage++;
+  loadGangLogs();
+};
+
+document.getElementById("gangPrevBtn").onclick = () => {
+  if (gangLogPage > 1) {
+    gangLogPage--;
+    loadGangLogs();
+  }
+};
+
+const factionNextBtn = document.getElementById("factionNextBtn");
+if (factionNextBtn) {
+  factionNextBtn.onclick = () => {
+    factionLogPage++;
+    loadFactionLogs();
+  };
+}
+
+const factionPrevBtn = document.getElementById("factionPrevBtn");
+if (factionPrevBtn) {
+  factionPrevBtn.onclick = () => {
+    if (factionLogPage > 1) {
+      factionLogPage--;
+      loadFactionLogs();
+    }
+  };
+}
+/* ===============================
+   SECTION SWITCHING
+================================ */
+function showSection(name){
+  document.querySelectorAll('[data-section]').forEach(s=>{
+    s.hidden = s.dataset.section !== name;
+  });
+
+  document.querySelectorAll('.nav a').forEach(a=>a.classList.remove('active'));
+  const active = document.querySelector(`.nav a[data-link="${name}"]`);
+  if(active) active.classList.add('active');
+
+  sidebar.classList.remove('active');
+  overlay.classList.remove('active');
+
+  if (name === "economy") {
+    loadEconomy();
+    initCharts();
+    loadRichestPlayers();
+    loadTopVehicles();
+    loadWealthDistribution();
+  }
+  
+  if (name === "factionlogs") {
+    factionLogPage = 1;
+    loadFactionLogs();
+  }
+  
+  if (name === "ganglogs") {
+    gangLogPage = 1;
+    loadGangLogs();
+  }
+  
+  if (name === "dashboard") {
+  loadRichestGangs();
+  loadFactions();
+  loadServerStatus();
+
+  // Auto refresh every 15 seconds
+  if (!window.serverPoll) {
+    window.serverPoll = setInterval(loadServerStatus, 15000);
+  }
+}
+
+  if (name === "adminlogs") {
+     adminLogPage = 1;
+     adminSearch = "";
+     document.getElementById("adminSearchInput").value = "";
+     loadAdminLogs();
+  }
+}
+
+function openGangProfile(gangId) {
+  console.log("Gang profile:", gangId);
+  // later → showSection("gangprofile")
+}
+
+
+/* ===============================
+   CHARTS (ECONOMY)
+================================ */
+let chartsMounted = false;
+
+function initCharts() {
+  if (chartsMounted) return;
+  chartsMounted = true;
+
+  new Chart(document.getElementById("circulationChart"), {
+    type: "line",
+    data: {
+      labels: ["D1", "D7", "D14", "D21", "D30"],
+      datasets: [{
+        data: [1.3, 1.1, 0.9, 0.6, 0.003],
+        borderColor: "#2fffd8"
+      }]
+    },
+    options: { plugins: { legend: { display: false } } }
+  });
+}
+
+async function loadRichestPlayers() {
+  try {
+    const res = await fetch(`${API_BASE}/economy/richest`);
+    if (!res.ok) throw new Error("Failed to load richest");
+
+    const players = await res.json();
+    const tbody = document.getElementById("ecoRichestList");
+
+    tbody.innerHTML = "";
+
+    if (!players.length) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="2" class="muted">No data</td>
+        </tr>`;
+      return;
+    }
+
+    players.forEach(p => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+  <td>${p.username}</td>
+  <td class="value-green">${formatMoneyShort(p.total_wealth)}</td>
+`;
+      tbody.appendChild(row);
+    });
+
+  } catch (err) {
+    console.error("Richest load failed:", err);
+  }
+}
+
+async function loadServerStatus() {
+  const statusEl = document.getElementById("serverOnline");
+  const playersEl = document.getElementById("serverPlayers");
+  const modeEl = document.getElementById("serverGamemode");
+  const hostEl = document.getElementById("serverHostname");
+  const listEl = document.getElementById("onlinePlayersList");
+
+  try {
+    const res = await fetch(`${API_BASE}/server/status`);
+    const data = await res.json();
+
+    if (!data.online) {
+      statusEl.textContent = "Offline";
+      statusEl.className = "val-red";
+      playersEl.textContent = "0 / 0";
+      modeEl.textContent = "—";
+      hostEl.textContent = "—";
+      listEl.innerHTML = `<li class="muted">Server is offline</li>`;
+      return;
+    }
+
+    statusEl.textContent = "Online";
+    statusEl.className = "val-green";
+
+    playersEl.textContent = `${data.playersOnline} / ${data.maxPlayers}`;
+    modeEl.textContent = data.gamemode || "Unknown";
+    hostEl.textContent = data.hostname || "Unknown";
+
+    listEl.innerHTML = "";
+
+    if (!data.players || data.players.length === 0) {
+      listEl.innerHTML = `<li class="muted">No players online</li>`;
+      return;
+    }
+
+    data.players.forEach(p => {
+      listEl.innerHTML += `
+        <li>
+          <span>${p.name}</span>
+          <span class="badge badge-rank">ID ${p.id}</span>
+        </li>
+      `;
+    });
+
+  } catch (err) {
+    console.error(err);
+    statusEl.textContent = "Error";
+    statusEl.className = "val-red";
+    listEl.innerHTML = `<li class="muted">Failed to load server data</li>`;
+  }
+}
+
+async function payPlayerCash() {
+  const username = document
+    .getElementById("payCashUsername")
+    .value.trim();
+
+  const amount = Number(
+    document.getElementById("payCashAmount").value
+  );
+
+  const reason = document
+    .getElementById("payCashReason")
+    .value.trim();
+
+  const statusEl = document.getElementById("payCashStatus");
+  statusEl.textContent = "";
+
+  if (!username || !amount || amount <= 0) {
+    statusEl.textContent = " Invalid username or amount";
+    return;
+  }
+
+  statusEl.textContent = "Processing payment";
+
+  try {
+    const res = await fetch(`${API_BASE}/admin/pay-cash`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        username,
+        amount,
+        reason: reason || "Admin cash payment",
+        admin: localStorage.getItem("adminUser") || "AdminPanel"
+      })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      statusEl.textContent = " " + (data.error || "Payment failed");
+      return;
+    }
+
+    statusEl.textContent = " Cash paid successfully";
+
+    // Clear inputs
+    ["payCashUsername", "payCashAmount", "payCashReason"]
+      .forEach(id => (document.getElementById(id).value = ""));
+
+  } catch (err) {
+    console.error(err);
+    statusEl.textContent = " Server error";
+  }
+}
+
+async function loadGangLogs() {
+  const list = document.getElementById("gangLogList");
+  const pageLabel = document.getElementById("gangPageLabel");
+
+  list.innerHTML = `<li class="muted">Loading gang logs…</li>`;
+
+  try {
+    const res = await fetch(
+      `${API_BASE}/gang/logs?page=${gangLogPage}`
+    );
+    if (!res.ok) throw new Error("Failed to load");
+
+    const data = await res.json();
+    const logs = data.logs || [];
+
+    list.innerHTML = "";
+
+    if (!logs.length) {
+      list.innerHTML = `<li class="muted">No gang logs found</li>`;
+      pageLabel.textContent = `Page ${gangLogPage}`;
+      return;
+    }
+
+    let lastDay = "";
+
+    logs.forEach(log => {
+      const day = getDayLabel(log.date);
+
+      if (day !== lastDay) {
+        list.innerHTML += `
+          <li class="muted" style="font-weight:700;margin-top:10px">
+            ${day}
+          </li>
+        `;
+        lastDay = day;
+      }
+
+      list.innerHTML += `
+        <li>
+          <div>${log.description}</div>
+          <small class="muted">${new Date(log.date).toLocaleTimeString()}</small>
+          <span class="badge badge-action">GANG</span>
+        </li>
+      `;
+    });
+
+    pageLabel.textContent = `Page ${gangLogPage}`;
+
+  } catch (err) {
+    console.error(err);
+    list.innerHTML = `<li class="muted">Failed to load gang logs</li>`;
+  }
+}
+
+async function openFactionProfile(factionId) {
+  document.getElementById("gangProfileCard")?.setAttribute("hidden", true);
+
+  const card = document.getElementById("factionProfileCard");
+  card.hidden = false;
+
+  try {
+    const res = await fetch(`${API_BASE}/factions/${factionId}`);
+    const f = await res.json();
+
+    document.getElementById("factionName").textContent = f.name;
+    document.getElementById("factionShort").textContent = f.shortname || "";
+    document.getElementById("factionLeader").textContent = f.leader;
+    document.getElementById("factionType").textContent = f.type;
+    document.getElementById("factionRanks").textContent = f.rankcount;
+    document.getElementById("factionTokens").textContent =
+      f.turftokens.toLocaleString();
+
+    loadFactionMembers(factionId);
+
+    card.scrollIntoView({ behavior: "smooth" });
+
+  } catch (err) {
+    alert("Failed to load faction profile");
+  }
+}
+
+async function loadFactions() {
+  const list = document.getElementById("factionList");
+  list.innerHTML = `<li class="muted">Loading factions…</li>`;
+
+  try {
+    const res = await fetch(`${API_BASE}/factions`);
+    const factions = await res.json();
+
+    list.innerHTML = "";
+
+    factions.forEach(f => {
+      const li = document.createElement("li");
+      li.innerHTML = `
+        <span>${f.name}</span>
+        <span class="muted">${f.leader}</span>
+        <span class="badge badge-action">VIEW</span>
+      `;
+      li.onclick = () => openFactionProfile(f.id);
+      list.appendChild(li);
+    });
+
+  } catch {
+    list.innerHTML = `<li class="muted">Failed to load factions</li>`;
+  }
+}
+
+async function loadFactionMembers(factionId) {
+  const list = document.getElementById("factionMembersList");
+  list.innerHTML = `<li class="muted">Loading members…</li>`;
+
+  try {
+    const res = await fetch(`${API_BASE}/factions/${factionId}/members`);
+    const members = await res.json();
+
+    list.innerHTML = "";
+
+    members.forEach(m => {
+      list.innerHTML += `
+        <li>
+          <span>${m.username}</span>
+          <span class="badge badge-rank">Rank ${m.factionrank}</span>
+        </li>
+      `;
+    });
+
+  } catch {
+    list.innerHTML = `<li class="muted">Failed to load members</li>`;
+  }
+}
+
+async function loadAdminLogs() {
+  const list = document.getElementById("adminLogList");
+  const pageLabel = document.getElementById("adminPageLabel");
+
+  list.innerHTML = `<li class="muted">Loading admin logs…</li>`;
+
+  const params = new URLSearchParams();
+  params.append("page", adminLogPage);
+
+  if (adminSearch && adminSearch.length > 0) {
+    params.append("admin", adminSearch);
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/admin/logs?${params.toString()}`);
+    if (!res.ok) throw new Error("Failed to load admin logs");
+
+    const data = await res.json();
+    const logs = data.logs || [];
+
+    list.innerHTML = "";
+
+    if (!logs.length) {
+      list.innerHTML = `<li class="muted">No logs found</li>`;
+      pageLabel.textContent = `Page ${adminLogPage}`;
+      return;
+    }
+
+    let lastDay = "";
+
+    logs.forEach(log => {
+      const day = getDayLabel(log.date);
+
+      // Day separator
+      if (day !== lastDay) {
+        list.innerHTML += `
+          <li class="muted" style="font-weight:700;margin-top:10px">
+            ${day}
+          </li>
+        `;
+        lastDay = day;
+      }
+
+      list.innerHTML += `
+        <li>
+          <div>${log.description}</div>
+          <small class="muted">${new Date(log.date).toLocaleTimeString()}</small>
+          <span class="badge badge-action">ADMIN</span>
+        </li>
+      `;
+    });
+
+    pageLabel.textContent = `Page ${adminLogPage}`;
+
+  } catch (err) {
+    console.error(err);
+    list.innerHTML = `<li class="muted">Failed to load logs</li>`;
+  }
+}
+
+async function loadGangMembers(gangId) {
+  const membersList = document.getElementById("gangMembersList");
+
+  // 🔒 ABSOLUTE SAFETY GUARD
+  if (!membersList) {
+    console.warn("gangMembersList missing — skipping members load");
+    return;
+  }
+
+  membersList.innerHTML = `<li class="muted">Loading members…</li>`;
+
+  try {
+    const res = await fetch(`${API_BASE}/gangs/${gangId}/members`);
+    if (!res.ok) throw new Error("Members request failed");
+
+    const members = await res.json();
+    membersList.innerHTML = "";
+
+    if (!members.length) {
+      membersList.innerHTML = `<li class="muted">No members found</li>`;
+      return;
+    }
+
+    members.forEach(m => {
+      const li = document.createElement("li");
+      li.innerHTML = `
+        <span>${m.username}</span>
+        <span class="badge badge-rank">Rank ${m.gangrank}</span>
+      `;
+      membersList.appendChild(li);
+    });
+
+  } catch (err) {
+    console.error("Gang members error:", err);
+    membersList.innerHTML = `<li class="muted">Failed to load members</li>`;
+  }
+}
+
+function closeGangProfile() {
+  const gangCard = document.getElementById("gangProfileCard");
+  if (gangCard) gangCard.hidden = true;
+}
+
+function closeFactionProfile() {
+  const factionCard = document.getElementById("factionProfileCard");
+  if (factionCard) factionCard.hidden = true;
+}
+
+async function loadFactionLogs() {
+  const list = document.getElementById("factionLogList");
+const pageLabel = document.getElementById("factionPageLabel");
+
+if (!list || !pageLabel) {
+  console.warn("Faction log DOM not mounted yet");
+  return;
+}
+
+  list.innerHTML = `<li class="muted">Loading faction logs…</li>`;
+
+  try {
+    const res = await fetch(
+      `${API_BASE}/faction/logs?page=${factionLogPage}`
+    );
+    if (!res.ok) throw new Error("Failed to load");
+
+    const data = await res.json();
+    const logs = data.logs || [];
+
+    list.innerHTML = "";
+
+    if (!logs.length) {
+      list.innerHTML = `<li class="muted">No faction logs found</li>`;
+      pageLabel.textContent = `Page ${factionLogPage}`;
+      return;
+    }
+
+    let lastDay = "";
+
+    logs.forEach(log => {
+      const day = getDayLabel(log.date);
+
+      if (day !== lastDay) {
+        list.innerHTML += `
+          <li class="muted" style="font-weight:700;margin-top:10px">
+            ${day}
+          </li>
+        `;
+        lastDay = day;
+      }
+
+      list.innerHTML += `
+        <li>
+          <div>${log.description}</div>
+          <small class="muted">
+            ${new Date(log.date).toLocaleTimeString()}
+          </small>
+          <span class="badge badge-action">FACTION</span>
+        </li>
+      `;
+    });
+
+    pageLabel.textContent = `Page ${factionLogPage}`;
+
+  } catch (err) {
+    console.error(err);
+    list.innerHTML = `<li class="muted">Failed to load faction logs</li>`;
+  }
+}
+
+function getDayLabel(dateString) {
+  const logDate = new Date(dateString);
+  const today = new Date();
+  const yesterday = new Date();
+
+  today.setHours(0,0,0,0);
+  yesterday.setDate(today.getDate() - 1);
+  yesterday.setHours(0,0,0,0);
+
+  const logDay = new Date(logDate);
+  logDay.setHours(0,0,0,0);
+
+  if (logDay.getTime() === today.getTime()) {
+    return "Today";
+  }
+
+  if (logDay.getTime() === yesterday.getTime()) {
+    return "Yesterday";
+  }
+
+  return logDay.toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric"
+  });
+}
+
+async function loadTopVehicles() {
+  const res = await fetch(`${API_BASE}/economy/top-vehicles`);
+  const data = await res.json();
+
+  if (window.vehicleChartInstance) {
+    window.vehicleChartInstance.destroy();
+  }
+
+  window.vehicleChartInstance = new Chart(
+    document.getElementById("vehicleChart"),
+    {
+      type: "bar",
+      data: {
+        labels: data.map(v => v.name),
+        datasets: [{
+          data: data.map(v => v.total),
+          backgroundColor: "#4cff2a",
+          borderRadius: 6
+        }]
+      },
+      options: {
+        indexAxis: "y",
+        responsive: true,
+        maintainAspectRatio: false,
+
+        layout: {
+          padding: {
+            left: 8,
+            right: 16
+          }
+        },
+
+        scales: {
+          x: {
+            ticks: {
+              color: "#9ca3af"
+            },
+            grid: { display: false }
+          },
+
+          y: {
+            ticks: {
+              mirror: true,          // ✅ FINAL KEY FIX
+              align: "start",
+              crossAlign: "near",
+              padding: 6,
+              autoSkip: false,
+              color: "#9ca3af",
+              font: { size: 12 },
+              callback(value) {
+                return this.getLabelForValue(value);
+              }
+            },
+            grid: { display: false }
+          }
+        },
+
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: ctx => `Owned: ${ctx.raw}`
+            }
+          }
+        }
+      }
+    }
+  );
+}
+
+async function loadRichestGangs() {
+  const list = document.getElementById("richestGangList");
+  list.innerHTML = `<li class="muted">Loading gangs…</li>`;
+
+  try {
+    const res = await fetch(`${API_BASE}/gangs/richest`);
+    if (!res.ok) throw new Error("Failed");
+
+    const gangs = await res.json();
+    list.innerHTML = "";
+
+    if (!gangs.length) {
+      list.innerHTML = `<li class="muted">No gangs found</li>`;
+      return;
+    }
+
+    gangs.forEach(g => {
+      const li = document.createElement("li");
+      li.style.cursor = "pointer";
+      li.innerHTML = `
+        <span>${g.name}</span>
+        <span class="val-green">₦${g.total_wealth.toLocaleString()}</span>
+        <span class="badge badge-action">VIEW</span>
+      `;
+
+      li.onclick = () => openGangProfile(g.id);
+      list.appendChild(li);
+    });
+
+  } catch (err) {
+    console.error(err);
+    list.innerHTML = `<li class="muted">Failed to load gangs</li>`;
+  }
+}
+
+async function openGangProfile(gangId) {
+  // 🔒 prevent overlap
+  closeFactionProfile();
+
+  const card = document.getElementById("gangProfileCard");
+  card.hidden = false;
+
+  const membersList = document.getElementById("gangMembersList");
+  membersList.innerHTML = `<li class="muted">Loading members…</li>`;
+
+  try {
+    // Gang info
+    const res = await fetch(`${API_BASE}/gangs/${gangId}`);
+    if (!res.ok) throw new Error("Gang not found");
+
+    const g = await res.json();
+
+    document.getElementById("gangName").textContent = g.name;
+    document.getElementById("gangLeader").textContent = g.leader;
+    document.getElementById("gangCash").textContent =
+      `₦${g.cash.toLocaleString()}`;
+    document.getElementById("gangMaterials").textContent =
+      g.materials.toLocaleString();
+    document.getElementById("gangTotal").textContent =
+      `₦${g.total_wealth.toLocaleString()}`;
+
+    // Members
+    const resMembers = await fetch(`${API_BASE}/gangs/${gangId}/members`);
+    const members = await resMembers.json();
+
+    membersList.innerHTML = "";
+
+    if (!members.length) {
+      membersList.innerHTML = `<li class="muted">No members found</li>`;
+    } else {
+      members.forEach(m => {
+        membersList.innerHTML += `
+          <li>
+            <span>${m.username}</span>
+            <span class="badge badge-rank">Rank ${m.gangrank}</span>
+          </li>
+        `;
+      });
+    }
+
+    card.scrollIntoView({ behavior: "smooth" });
+
+  } catch (err) {
+    console.error(err);
+    membersList.innerHTML =
+      `<li class="muted">Failed to load members</li>`;
+  }
+}
+
+const themeToggle = document.getElementById("themeToggle");
+
+function applyTheme(theme) {
+  if (theme === "light") {
+    document.body.classList.add("light");
+    themeToggle.textContent = "☀️";
+  } else {
+    document.body.classList.remove("light");
+    themeToggle.textContent = "🌙";
+  }
+  localStorage.setItem("theme", theme);
+}
+
+// Toggle click
+themeToggle.onclick = () => {
+  const current = document.body.classList.contains("light")
+    ? "light"
+    : "dark";
+  applyTheme(current === "light" ? "dark" : "light");
+};
+
+// Load saved theme
+window.addEventListener("load", () => {
+  const saved = localStorage.getItem("theme") || "dark";
+  applyTheme(saved);
+});
+
+async function loadWealthDistribution() {
+  try {
+    const res = await fetch(`${API_BASE}/economy/wealth-distribution`);
+    if (!res.ok) throw new Error("Wealth API failed");
+
+    const data = await res.json();
+
+    if (window.wealthChartInstance) {
+      window.wealthChartInstance.destroy();
+    }
+
+    window.wealthChartInstance = new Chart(
+      document.getElementById("wealthChart"),
+      {
+        type: "doughnut",
+        data: {
+          labels: ["Rich", "Others"],
+          datasets: [{
+            data: [data.rich, data.others],
+            backgroundColor: ["#2fffd8", "#1f2937"],
+            borderWidth: 2,
+            borderColor: "#0b1320"
+          }]
+        },
+        options: {
+          cutout: "65%",
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: ctx => `${ctx.label}: ${ctx.raw}`
+              }
+            }
+          }
+        }
+      }
+    );
+
+  } catch (err) {
+    console.error("Wealth chart failed:", err);
+  }
+}
+
+async function scheduleEvent() {
+  const payload = {
+    name: document.getElementById("eventName").value.trim(),
+    prize: Number(document.getElementById("eventPrize").value),
+    event_date: document.getElementById("eventDate").value,
+    max_participants: Number(document.getElementById("eventMax").value),
+    description: document.getElementById("eventDesc").value.trim(),
+    created_by: "Admin"
+  };
+
+  if (!payload.name || !payload.prize || !payload.event_date) {
+    alert("Fill all required fields");
+    return;
+  }
+
+  const res = await fetch(`${API_BASE}/events`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+
+  if (!res.ok) {
+    alert("Failed to schedule event");
+    return;
+  }
+
+  alert("✅ Event scheduled successfully");
+
+  // clear form
+  ["eventName","eventPrize","eventDate","eventMax","eventDesc"]
+    .forEach(id => document.getElementById(id).value = "");
+}
+
+document.querySelector("#payWinnerBtn").addEventListener("click", async () => {
+  const username = document.querySelector("#payPlayerName").value.trim();
+  const amount = Number(document.querySelector("#payAmount").value);
+  const reason = document.querySelector("#payReason").value.trim();
+  const methodEl = document.querySelector("#payMethod");
+
+  if (!methodEl) {
+    alert("❌ Payment method selector missing");
+    return;
+  }
+
+  const method = methodEl.value;
+
+  if (!username || !amount || amount <= 0) {
+    alert("Invalid payment details");
+    return;
+  }
+
+  console.log("Pay winner payload:", {
+    username,
+    amount,
+    method,
+    reason
+  });
+
+  const res = await fetch(`${API_BASE}/events/pay-winner`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      username,
+      amount,
+      method,
+      admin: "AdminPanel",
+      event_id: null
+    })
+  });
+
+  const text = await res.text();
+  console.log("Backend response:", text);
+
+  try {
+    const data = JSON.parse(text);
+    if (res.ok) {
+      alert("✅ Winner paid successfully");
+    } else {
+      alert(data.error || "Payment failed");
+    }
+  } catch {
+    alert(text || "Payment failed");
+  }
+});
+
+/* ===============================
+   PLAYER SEARCH
+================================ */
+document.getElementById("playerSearchBtn").onclick = async () => {
+  const username = document.getElementById("playerSearchInput").value.trim();
+  if (!username) {
+    alert("Enter username");
+    return;
+  }
+
+  const resultsBox = document.getElementById("playerResults");
+  const loading = document.getElementById("playerLoading");
+
+  resultsBox.hidden = true;
+  loading.hidden = false;
+
+  try {
+    /* ===== PLAYER DATA ===== */
+    const res = await fetch(
+      `${API_BASE}/player/${encodeURIComponent(username)}`
+    );
+
+    if (!res.ok) {
+      loading.hidden = true;
+      alert("Player not found");
+      return;
+    }
+
+    const p = await res.json();
+
+    resultsBox.hidden = false;
+    resultsBox.classList.add("fade-in");
+
+    document.getElementById("playerName").textContent = p.username;
+    document.getElementById("playerFaction").textContent =
+      p.faction_name
+        ? `${p.faction_name} (Rank ${p.factionrank})`
+        : "Civilian";
+
+    document.getElementById("playerLevel").textContent = p.level;
+    document.getElementById("playerHours").textContent = p.hours;
+    document.getElementById("playerCash").textContent = `₦${p.cash}`;
+    document.getElementById("playerBank").textContent = `₦${p.bank}`;
+    document.getElementById("playerFleeca").textContent = `₦${p.fleeca ?? 0}`;
+
+    /* ===== VEHICLES ===== */
+    const vehicleRes = await fetch(
+      `${API_BASE}/player/${encodeURIComponent(username)}/vehicles`
+    );
+    const vehicles = await vehicleRes.json();
+
+    const container = document.getElementById("vehicleRows");
+    container.innerHTML = "";
+
+    if (!vehicles.length) {
+      container.innerHTML =
+        `<div class="table-row"><div>No vehicles</div><div>�</div></div>`;
+    } else {
+      vehicles.forEach(v => {
+        const row = document.createElement("div");
+        row.className = "table-row";
+        row.innerHTML = `<div>${v.name}</div><div>${v.tickets}</div>`;
+        container.appendChild(row);
+      });
+    }
+    
+    /* ===== HOUSES ===== */
+const houseRes = await fetch(
+  `${API_BASE}/player/${encodeURIComponent(username)}/houses`
+);
+const houses = await houseRes.json();
+
+const houseList = document.getElementById("houseList");
+houseList.innerHTML = "";
+
+if (!houses.length) {
+  houseList.innerHTML = `<li><span>No houses</span></li>`;
+} else {
+  houses.forEach(h => {
+    houseList.innerHTML += `
+      <li>
+        <span>House #${h.id}</span>
+        <span>₦${h.price.toLocaleString()}</span>
+      </li>`;
+  });
+}
+
+/* ===== BUSINESSES ===== */
+const bizRes = await fetch(
+  `${API_BASE}/player/${encodeURIComponent(username)}/businesses`
+);
+const businesses = await bizRes.json();
+
+const businessList = document.getElementById("businessList");
+businessList.innerHTML = "";
+
+if (!businesses.length) {
+  businessList.innerHTML = `<li><span>No businesses</span></li>`;
+} else {
+  businesses.forEach(b => {
+    businessList.innerHTML += `
+      <li>
+        <span>${b.name}</span>
+        <span>₦${b.price.toLocaleString()}</span>
+      </li>`;
+  });
+}
+
+    loading.hidden = true;
+
+  } catch (err) {
+    console.error(err);
+    loading.hidden = true;
+    alert("API error");
+  }
+};
+
+
+
+async function loadEconomy() {
+  try {
+    const res = await fetch(`${API_BASE}/economy`);
+    if (!res.ok) throw new Error("Economy API failed");
+
+    const data = await res.json();
+
+    /* === HEADER TOTAL === */
+    document.getElementById("ecoCirculation").textContent =
+      `₦${Number(data.total).toLocaleString()}`;
+
+    document.getElementById("ecoTblYesterday").textContent =
+      `₦${Number(data.yesterday).toLocaleString()}`;
+
+    document.getElementById("ecoTbl7Days").textContent =
+      `₦${Number(data.sevenDaysAgo).toLocaleString()}`;
+
+    document.getElementById("ecoTblGovernment").textContent =
+      `₦${Number(data.government).toLocaleString()}`;
+
+    /* === DELTA CALC === */
+    const delta =
+      data.yesterday > 0
+        ? ((data.total - data.yesterday) / data.yesterday) * 100
+        : 0;
+
+    const deltaEl = document.getElementById("ecoTblDelta");
+    deltaEl.textContent = `${delta.toFixed(2)}%`;
+    deltaEl.className = delta >= 0 ? "value-green" : "value-danger";
+
+  } catch (err) {
+    console.error("Economy load failed:", err);
+  }
+}
+
+/* ===============================
+   ENTER KEY SEARCH
+================================ */
+document
+  .getElementById("playerSearchInput")
+  .addEventListener("keydown", e => {
+    if (e.key === "Enter") {
+      document.getElementById("playerSearchBtn").click();
+    }
+  });
+
+document.addEventListener("DOMContentLoaded", () => {
+  if (localStorage.getItem("adminUser")) {
+    document.getElementById("loginSection").style.display = "none";
+    document.querySelector('[data-section="dashboard"]').style.display = "block";
+  }
+});
+
+/* ===============================
+   CLEAR RESULTS
+================================ */
+document.getElementById("playerClearBtn").onclick = () => {
+  document.getElementById("playerResults").hidden = true;
+  document.getElementById("vehicleRows").innerHTML = "";
+  document.getElementById("playerSearchInput").value = "";
+};
+
+document.getElementById("toggleVehicles").onclick = () => {
+  const block = document.getElementById("vehiclesBlock");
+  block.hidden = !block.hidden;
+};
+</script>
+
+</body>
+</html>
