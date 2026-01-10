@@ -289,34 +289,6 @@ body {
   color: var(--text);
 }
 
-.job-total {
-  text-align: center;
-  padding: 30px;
-}
-
-.job-total h3 {
-  letter-spacing: 2px;
-  opacity: 0.7;
-}
-
-.big-money {
-  font-size: 42px;
-  font-weight: 700;
-  color: #3cff7f;
-  margin-top: 10px;
-}
-
-.list li {
-  display: flex;
-  justify-content: space-between;
-  padding: 10px 0;
-}
-
-.list li span:last-child {
-  color: #3cff7f;
-  font-weight: 600;
-}
-
 canvas{max-height:240px}
 .muted{color:var(--muted)}
 </style>
@@ -1061,9 +1033,6 @@ if (name === "jobs") {
   loadJobs();
 }
 
-if (name === "archetypes") {
-  loadJobArchetype(3, "MINING");
-
 function openGangProfile(gangId) {
   console.log("Gang profile:", gangId);
   // later → showSection("gangprofile")
@@ -1174,37 +1143,6 @@ async function loadServerStatus() {
     statusEl.className = "val-red";
     listEl.innerHTML = `<li class="muted">Failed to load server data</li>`;
   }
-}
-
-async function loadJobArchetype(jobid, jobName) {
-  document.getElementById("jobTitle").textContent = jobName;
-
-  // TOTAL
-  const totalRes = await fetch(`${API_BASE}/jobs/total/${jobid}`);
-  const totalData = await totalRes.json();
-  document.getElementById("jobTotal").textContent =
-    "₦" + totalData.total.toLocaleString();
-
-  // TOP 5
-  const list = document.getElementById("jobTopList");
-  list.innerHTML = "";
-
-  const res = await fetch(`${API_BASE}/jobs/top/${jobid}`);
-  const players = await res.json();
-
-  if (!players.length) {
-    list.innerHTML = `<li class="muted">No data</li>`;
-    return;
-  }
-
-  players.forEach(p => {
-    list.innerHTML += `
-      <li>
-        <span>${p.username}</span>
-        <span>₦${p.total.toLocaleString()}</span>
-      </li>
-    `;
-  });
 }
 
 async function loadJobs() {
@@ -2137,6 +2075,7 @@ document.getElementById("toggleVehicles").onclick = () => {
 
 </body>
 </html>
+
 
 
 
