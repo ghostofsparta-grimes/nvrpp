@@ -289,6 +289,34 @@ body {
   color: var(--text);
 }
 
+.job-total {
+  text-align: center;
+  padding: 30px;
+}
+
+.job-total h3 {
+  letter-spacing: 2px;
+  opacity: 0.7;
+}
+
+.big-money {
+  font-size: 42px;
+  font-weight: 700;
+  color: #3cff7f;
+  margin-top: 10px;
+}
+
+.list li {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+}
+
+.list li span:last-child {
+  color: #3cff7f;
+  font-weight: 600;
+}
+
 canvas{max-height:240px}
 .muted{color:var(--muted)}
 </style>
@@ -318,6 +346,7 @@ canvas{max-height:240px}
     <a data-link="factionlogs" onclick="showSection('factionlogs')">Faction Logs</a>
     <a data-link="ganglogs" onclick="showSection('ganglogs')">Gang Logs</a>
     <a data-link="jobs" onclick="showSection('jobs')">Jobs</a>
+    <a data-link="archetypes" onclick="showSection('archetypes')">Archetypes</a>
   </nav>
 </div>
 <div class="overlay" id="overlay"></div>
@@ -861,6 +890,32 @@ canvas{max-height:240px}
   </div>
 </section>
 
+<section data-section="archetypes" hidden>
+
+  <div class="card">
+    <h2>Player Archetypes</h2>
+  </div>
+
+  <!-- JOB TOTAL CARD -->
+  <div class="card job-total">
+    <h3 id="jobTitle">MINING</h3>
+    <div class="big-money" id="jobTotal">₦0</div>
+  </div>
+
+  <!-- TOP PLAYERS -->
+  <div class="grid-4">
+
+    <div class="card">
+      <h3>Top 5 Miners</h3>
+      <ul class="list" id="jobTopList">
+        <li class="muted">Loading…</li>
+      </ul>
+    </div>
+
+  </div>
+
+</section>
+
 </main>
 
 <script>
@@ -1032,6 +1087,9 @@ if (name === "jobs") {
   loadJobs();
 }
 
+if (name === "archetypes") {
+  loadJobArchetype(3, "MINING");
+
 function openGangProfile(gangId) {
   console.log("Gang profile:", gangId);
   // later → showSection("gangprofile")
@@ -1142,6 +1200,37 @@ async function loadServerStatus() {
     statusEl.className = "val-red";
     listEl.innerHTML = `<li class="muted">Failed to load server data</li>`;
   }
+}
+
+async function loadJobArchetype(jobid, jobName) {
+  document.getElementById("jobTitle").textContent = jobName;
+
+  // TOTAL
+  const totalRes = await fetch(`${API_BASE}/jobs/total/${jobid}`);
+  const totalData = await totalRes.json();
+  document.getElementById("jobTotal").textContent =
+    "₦" + totalData.total.toLocaleString();
+
+  // TOP 5
+  const list = document.getElementById("jobTopList");
+  list.innerHTML = "";
+
+  const res = await fetch(`${API_BASE}/jobs/top/${jobid}`);
+  const players = await res.json();
+
+  if (!players.length) {
+    list.innerHTML = `<li class="muted">No data</li>`;
+    return;
+  }
+
+  players.forEach(p => {
+    list.innerHTML += `
+      <li>
+        <span>${p.username}</span>
+        <span>₦${p.total.toLocaleString()}</span>
+      </li>
+    `;
+  });
 }
 
 async function loadJobs() {
@@ -2074,4 +2163,5 @@ document.getElementById("toggleVehicles").onclick = () => {
 
 </body>
 </html>
+
 
