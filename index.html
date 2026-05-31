@@ -5,9 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cont Admin Panel</title>
 
-<!-- PHASE 5.9 – ADMIN LOGS MERGED INTO PHASE 5.7 (CONTROLLED, ADDITIVE ONLY) -->
-<!-- PHASE 6.4 – FACTION LOGS REPLACED IN-PLACE (STRICT, NO OTHER CHANGES) -->
-
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
 <style>
@@ -107,8 +104,6 @@ button{
 .btn-danger{background:var(--danger);color:#fff}
 .btn-muted{background:#1f2937;color:#e5e7eb}
 
-/* ===== PLAYER LOOKUP UX ===== */
-
 .loading {
   margin-top: 12px;
   text-align: center;
@@ -128,14 +123,8 @@ button{
 }
 
 @keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .eco-table {
@@ -194,7 +183,6 @@ button{
   max-height: 260px;
 }
 
-/* ===== GANG MEMBERS FIX ===== */
 #gangMembersList {
   max-height: 320px;
   overflow-y: auto;
@@ -206,10 +194,8 @@ button{
   justify-content: space-between;
   align-items: center;
   gap: 8px;
-
   padding: 8px 0;
   border-bottom: 1px solid #111827;
-
   white-space: nowrap;
 }
 
@@ -296,11 +282,9 @@ canvas{max-height:240px}
 
 <body>
 
-<header>
-  <div class="brand">GC:RP Admin</div>
-  <button id="themeToggle" class="menu-btn" title="Toggle theme">
-  
-</button>
+<<header>
+  <div class="brand">Cont Admin Panel</div>
+  <button id="themeToggle" class="menu-btn" title="Toggle theme">🌙</button>
   <div class="menu-btn" id="menuBtn"><span></span></div>
 </header>
 
@@ -329,158 +313,128 @@ canvas{max-height:240px}
 </div>
 <div class="overlay" id="overlay"></div>
 
-<main>
+<<main>
 
 <section data-section="dashboard">
 
-  <!-- DASHBOARD HEADER -->
   <div class="card">
     <h3>Dashboard</h3>
     <p class="muted">Summary only.</p>
   </div>
   
-  <!-- SERVER STATUS -->
-<div class="card" id="serverStatusCard">
-  <h3>️ Server Status</h3>
-
-  <div class="grid-4">
-    <div class="stat">
-      <h4>Status</h4>
-      <div id="serverOnline" class="val-cyan">—</div>
-    </div>
-
-    <div class="stat">
-      <h4>Players</h4>
-      <div id="serverPlayers" class="val-green">—</div>
-    </div>
-
-    <div class="stat">
-      <h4>Gamemode</h4>
-      <div id="serverGamemode" class="val-cyan">—</div>
-    </div>
-
-    <div class="stat">
-      <h4>Hostname</h4>
-      <div id="serverHostname" class="val-cyan">—</div>
-    </div>
-  </div>
-</div>
-
-<!-- PLAYER LIST -->
-<div class="card" id="onlinePlayersCard">
-  <h3> Online Players</h3>
-  <ul class="list" id="onlinePlayersList">
-    <li class="muted">Loading players…</li>
-  </ul>
-</div>
-
-  <!-- RICHEST GANGS -->
-  <!-- RICHEST GANGS -->
-<div class="card">
-  <h3> Richest Gangs</h3>
-  <ul class="list" id="richestGangList">
-    <li class="muted">Loading gangs…</li>
-  </ul>
-</div>
-
-<!-- GANG PROFILE -->
-<div class="card" id="gangProfileCard" hidden>
-
-  <h3> Gang Profile</h3>
-
-  <!-- NAME -->
-  <div class="stat" style="margin-bottom:12px">
-    <h4>Name</h4>
-    <div class="val-cyan" id="gangName">—</div>
-  </div>
-
-  <!-- STATS GRID -->
-  <div class="grid-4">
-    <div class="stat">
-      <h4>Leader</h4>
-      <div class="val-cyan" id="gangLeader">—</div>
-    </div>
-
-    <div class="stat">
-      <h4>Cash</h4>
-      <div class="val-green" id="gangCash">—</div>
-    </div>
-
-    <div class="stat">
-      <h4>Materials</h4>
-      <div class="val-cyan" id="gangMaterials">—</div>
-    </div>
-
-    <div class="stat">
-      <h4>Total Wealth</h4>
-      <div class="val-green" id="gangTotal">—</div>
+  <div class="card" id="serverStatusCard">
+    <h3>Server Status</h3>
+    <div class="grid-4">
+      <div class="stat">
+        <h4>Status</h4>
+        <div id="serverOnline" class="val-cyan">—</div>
+      </div>
+      <div class="stat">
+        <h4>Players</h4>
+        <div id="serverPlayers" class="val-green">—</div>
+      </div>
+      <div class="stat">
+        <h4>Gamemode</h4>
+        <div id="serverGamemode" class="val-cyan">—</div>
+      </div>
+      <div class="stat">
+        <h4>Hostname</h4>
+        <div id="serverHostname" class="val-cyan">—</div>
+      </div>
     </div>
   </div>
 
-  <!-- MEMBERS (OUTSIDE GRID) -->
-  <div class="card" style="margin-top:16px">
-    <h3> Members</h3>
-
-    <ul class="list" id="gangMembersList">
-      <li class="muted">Loading members…</li>
+  <div class="card" id="onlinePlayersCard">
+    <h3>Online Players</h3>
+    <ul class="list" id="onlinePlayersList">
+      <li class="muted">Loading players…</li>
     </ul>
   </div>
 
-  <div style="margin-top:12px">
-    <button class="btn-muted" onclick="closeGangProfile()">Close Profile</button>
-  </div>
-
-</div>
-<!-- FACTIONS -->
-<div class="card">
-  <h3>️ Factions</h3>
-
-  <ul class="list" id="factionList">
-    <li class="muted">Loading factions…</li>
-  </ul>
-</div>
-<div class="card" id="factionProfileCard" hidden>
-  <h3>️ Faction Profile</h3>
-
-  <div class="stat" style="margin-bottom:12px">
-    <h4>Name</h4>
-    <div class="val-cyan" id="factionName">—</div>
-    <div class="muted" id="factionShort">—</div>
-  </div>
-
-  <div class="grid-4">
-    <div class="stat">
-      <h4>Leader</h4>
-      <div class="val-cyan" id="factionLeader">—</div>
-    </div>
-
-    <div class="stat">
-      <h4>Type</h4>
-      <div class="val-cyan" id="factionType">—</div>
-    </div>
-
-    <div class="stat">
-      <h4>Ranks</h4>
-      <div class="val-cyan" id="factionRanks">—</div>
-    </div>
-
-    <div class="stat">
-      <h4>Turf Tokens</h4>
-      <div class="val-green" id="factionTokens">—</div>
-    </div>
-  </div>
-
-  <div class="card" style="margin-top:12px">
-    <h3> Members</h3>
-    <ul class="list" id="factionMembersList">
-      <li class="muted">Loading members…</li>
+  <div class="card">
+    <h3>Richest Gangs</h3>
+    <ul class="list" id="richestGangList">
+      <li class="muted">Loading gangs…</li>
     </ul>
   </div>
 
-  <div style="margin-top:12px">
-    <button class="btn-muted" onclick="closeFactionProfile()">Close Profile</button>
+  <div class="card" id="gangProfileCard" hidden>
+    <h3>Gang Profile</h3>
+    <div class="stat" style="margin-bottom:12px">
+      <h4>Name</h4>
+      <div class="val-cyan" id="gangName">—</div>
+    </div>
+    <div class="grid-4">
+      <div class="stat">
+        <h4>Leader</h4>
+        <div class="val-cyan" id="gangLeader">—</div>
+      </div>
+      <div class="stat">
+        <h4>Cash</h4>
+        <div class="val-green" id="gangCash">—</div>
+      </div>
+      <div class="stat">
+        <h4>Materials</h4>
+        <div class="val-cyan" id="gangMaterials">—</div>
+      </div>
+      <div class="stat">
+        <h4>Total Wealth</h4>
+        <div class="val-green" id="gangTotal">—</div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <h3>Members</h3>
+      <ul class="list" id="gangMembersList">
+        <li class="muted">Loading members…</li>
+      </ul>
+    </div>
+    <div style="margin-top:12px">
+      <button class="btn-muted" onclick="closeGangProfile()">Close Profile</button>
+    </div>
   </div>
-</div>
+
+  <div class="card">
+    <h3>Factions</h3>
+    <ul class="list" id="factionList">
+      <li class="muted">Loading factions…</li>
+    </ul>
+  </div>
+
+  <div class="card" id="factionProfileCard" hidden>
+    <h3>Faction Profile</h3>
+    <div class="stat" style="margin-bottom:12px">
+      <h4>Name</h4>
+      <div class="val-cyan" id="factionName">—</div>
+      <div class="muted" id="factionShort">—</div>
+    </div>
+    <div class="grid-4">
+      <div class="stat">
+        <h4>Leader</h4>
+        <div class="val-cyan" id="factionLeader">—</div>
+      </div>
+      <div class="stat">
+        <h4>Type</h4>
+        <div class="val-cyan" id="factionType">—</div>
+      </div>
+      <div class="stat">
+        <h4>Ranks</h4>
+        <div class="val-cyan" id="factionRanks">—</div>
+      </div>
+      <div class="stat">
+        <h4>Turf Tokens</h4>
+        <div class="val-green" id="factionTokens">—</div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <h3>Members</h3>
+      <ul class="list" id="factionMembersList">
+        <li class="muted">Loading members…</li>
+      </ul>
+    </div>
+    <div style="margin-top:12px">
+      <button class="btn-muted" onclick="closeFactionProfile()">Close Profile</button>
+    </div>
+  </div>
 
 </section>
 
@@ -492,36 +446,34 @@ canvas{max-height:240px}
   </div>
 
   <div class="card">
-  <h3>Economy Breakdown</h3>
-  <table class="eco-table">
-    <thead>
-      <tr>
-        <th>Metric</th>
-        <th>Value</th>
-        <th>Change</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>Yesterday</td>
-        <td id="ecoTblYesterday">$</td>
-        <td id="ecoTblDelta" class="value-danger">—</td>
-      </tr>
-
-      <tr>
-        <td>7 Days Ago</td>
-        <td id="ecoTbl7Days">$</td>
-        <td>—</td>
-      </tr>
-
-      <tr>
-        <td>Government Funds</td>
-        <td id="ecoTblGovernment">$</td>
-        <td>—</td>
-      </tr>
-    </tbody>
-  </table>
-</div>
+    <h3>Economy Breakdown</h3>
+    <table class="eco-table">
+      <thead>
+        <tr>
+          <th>Metric</th>
+          <th>Value</th>
+          <th>Change</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Yesterday</td>
+          <td id="ecoTblYesterday">$</td>
+          <td id="ecoTblDelta" class="value-danger">—</td>
+        </tr>
+        <tr>
+          <td>7 Days Ago</td>
+          <td id="ecoTbl7Days">$</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td>Government Funds</td>
+          <td id="ecoTblGovernment">$</td>
+          <td>—</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 
   <div class="card">
     <h3>30-Day Circulation Trend</h3>
@@ -539,23 +491,22 @@ canvas{max-height:240px}
   </div>
   
   <div class="card">
-  <h3>Richest Players</h3>
-
-  <table class="eco-table">
-    <thead>
-      <tr>
-        <th>Player</th>
-        <th>Total Wealth</th>
-      </tr>
-    </thead>
-    <tbody id="ecoRichestList">
-      <tr>
-        <td class="muted">Loading…</td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-</div>
+    <h3>Richest Players</h3>
+    <table class="eco-table">
+      <thead>
+        <tr>
+          <th>Player</th>
+          <th>Total Wealth</th>
+        </tr>
+      </thead>
+      <tbody id="ecoRichestList">
+        <tr>
+          <td class="muted">Loading…</td>
+          <td></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 </section>
 
 <section data-section="events" hidden>
@@ -582,118 +533,88 @@ canvas{max-height:240px}
     <button id="payWinnerBtn" style="margin-top:12px">Pay</button>
   </div>
   <div class="card">
-  <h3> Pay Player (Cash)</h3>
-
-  <div class="grid-2">
-    <input id="payCashUsername" placeholder="Player Username">
-    <input id="payCashAmount" type="number" placeholder="Amount">
+    <h3>Pay Player (Cash)</h3>
+    <div class="grid-2">
+      <input id="payCashUsername" placeholder="Player Username">
+      <input id="payCashAmount" type="number" placeholder="Amount">
+    </div>
+    <input id="payCashReason" placeholder="Reason (optional)" style="margin-top:8px">
+    <button style="margin-top:12px" onclick="payPlayerCash()">Pay Cash</button>
+    <p class="muted" id="payCashStatus" style="margin-top:8px"></p>
   </div>
-
-  <input
-    id="payCashReason"
-    placeholder="Reason (optional)"
-    style="margin-top:8px"
-  >
-
-  <button style="margin-top:12px" onclick="payPlayerCash()">
-    Pay Cash
-  </button>
-
-  <p class="muted" id="payCashStatus" style="margin-top:8px"></p>
-</div>
-  
 </section>
 
 <section data-section="player" hidden>
-
-  <!-- SEARCH BAR (always visible) -->
   <div class="card">
     <div class="grid-2">
       <input id="playerSearchInput" placeholder="Username">
       <button id="playerSearchBtn">Search</button>
       <button id="playerClearBtn" class="btn-muted">Clear</button>
     </div>
-
-    <!--  LOADING -->
-    <div id="playerLoading" class="muted" hidden>
-      Searching player…
-    </div>
+    <div id="playerLoading" class="muted" hidden>Searching player…</div>
   </div>
 
-  <!-- PLAYER DATA (hidden until search) -->
   <div id="playerResults" hidden>
-
-    <!-- RECORD HEADER -->
     <div class="card">
-      <h2 style="color:var(--cyan)">
-        Records For <span id="playerName">—</span>
-      </h2>
-
+      <h2 style="color:var(--cyan)">Records For <span id="playerName">—</span></h2>
       <div class="stat">
         <h4>Faction</h4>
         <div class="val-cyan" id="playerFaction">—</div>
       </div>
     </div>
 
-    <!-- STATS GRID -->
     <div class="grid-4">
       <div class="stat">
         <h4>Level</h4>
         <div class="val-cyan" id="playerLevel">—</div>
       </div>
-
       <div class="stat">
         <h4>Hours</h4>
         <div class="val-cyan" id="playerHours">—</div>
       </div>
-
       <div class="stat">
         <h4>Cash</h4>
         <div class="val-green" id="playerCash">—</div>
       </div>
-
       <div class="stat">
         <h4>Bank</h4>
         <div class="val-green" id="playerBank">—</div>
       </div>
-
       <div class="stat">
         <h4>Fleeca</h4>
         <div class="val-cyan" id="playerFleeca">—</div>
       </div>
-
       <div class="stat">
         <h4>Crimes</h4>
         <div class="val-danger">0</div>
       </div>
     </div>
 
-    <!-- VEHICLES -->
     <div class="card">
-      <h3 style="display:flex;justify-content:space-between;align-items:center;">Vehicles<button id="toggleVehicles" class="btn-muted">Hide</button></h3>
+      <h3 style="display:flex;justify-content:space-between;align-items:center;">
+        Vehicles
+        <button id="toggleVehicles" class="btn-muted">Hide</button>
+      </h3>
       <div id="vehiclesBlock">
-      <div class="table-header">
-        <div>MODEL ID</div>
-        <div>TICKETS</div>
+        <div class="table-header">
+          <div>MODEL ID</div>
+          <div>TICKETS</div>
+        </div>
+        <div id="vehicleRows"></div>
       </div>
-      <div id="vehicleRows"></div>
     </div>
 
-    <!-- PROPERTY -->
-<div class="card">
-  <h3>Property</h3>
-
-  <h4 class="muted">Houses</h4>
-  <ul class="list" id="houseList">
-    <li class="muted">No houses loaded</li>
-  </ul>
-
-  <h4 class="muted" style="margin-top:12px">Businesses</h4>
-  <ul class="list" id="businessList">
-    <li class="muted">No businesses loaded</li>
-  </ul>
-</div>
-
+    <div class="card">
+      <h3>Property</h3>
+      <h4 class="muted">Houses</h4>
+      <ul class="list" id="houseList">
+        <li class="muted">No houses loaded</li>
+      </ul>
+      <h4 class="muted" style="margin-top:12px">Businesses</h4>
+      <ul class="list" id="businessList">
+        <li class="muted">No businesses loaded</li>
+      </ul>
+    </div>
   </div>
 </section>
 
@@ -779,23 +700,15 @@ canvas{max-height:240px}
     <h2>Admin Logs</h2>
     <p class="muted">Track administrative actions performed in-game.</p>
   </div>
-
   <div class="card">
-    <!-- SEARCH -->
     <div class="grid-2" style="margin-bottom:12px">
-      <input
-        id="adminSearchInput"
-        placeholder="Search admin name (e.g. Bruno_Mendez)"
-      >
+      <input id="adminSearchInput" placeholder="Search admin name (e.g. Bruno_Mendez)">
       <button id="adminSearchBtn">Search</button>
     </div>
-
     <h3>Recent Actions</h3>
     <ul class="list" id="adminLogList">
       <li class="muted">Loading admin logs…</li>
     </ul>
-
-    <!-- PAGINATION -->
     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">
       <button id="adminPrevBtn" class="btn-muted">Previous</button>
       <span id="adminPageLabel" class="muted">Page 1</span>
@@ -804,21 +717,16 @@ canvas{max-height:240px}
   </div>
 </section>
 
-<!-- REPLACED IN-PLACE: FACTION LOGS -->
 <section data-section="factionlogs" hidden>
   <div class="card">
     <h2>Faction Logs</h2>
     <p class="muted">Monitor faction joins, leaves, and rank changes.</p>
   </div>
-
   <div class="card">
     <h3>Recent Faction Activity</h3>
-
     <ul class="list" id="factionLogList">
       <li class="muted">Loading faction logs…</li>
     </ul>
-
-    <!-- PAGINATION -->
     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">
       <button id="factionPrevBtn" class="btn-muted">Previous</button>
       <span id="factionPageLabel" class="muted">Page 1</span>
@@ -832,14 +740,11 @@ canvas{max-height:240px}
     <h2>Gang Logs</h2>
     <p class="muted">Track gang-related activities and changes.</p>
   </div>
-
   <div class="card">
     <h3>Recent Gang Activity</h3>
-
     <ul class="list" id="gangLogList">
       <li class="muted">Loading gang logs…</li>
     </ul>
-
     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">
       <button id="gangPrevBtn" class="btn-muted">Previous</button>
       <span id="gangPageLabel" class="muted">Page 1</span>
@@ -847,200 +752,168 @@ canvas{max-height:240px}
     </div>
   </div>
 </section>
-<section data-section="jobs" hidden>
 
-  <!-- JOB LIST -->
+<section data-section="jobs" hidden>
   <div class="card">
     <h2>Job Earnings</h2>
     <p class="muted">Select a job to view details</p>
-
     <ul class="list" id="jobList">
       <li class="muted">Loading jobs…</li>
     </ul>
   </div>
-
-  <!-- JOB PROFILE -->
   <div class="card" id="jobProfileCard" hidden>
-
     <h3 id="jobProfileTitle">Job Profile</h3>
-
     <div class="grid-2">
       <div class="stat">
         <h4>Total Earned</h4>
         <div class="val-green" id="jobTotalAll">₦0</div>
       </div>
-
       <div class="stat">
         <h4>Last 24 Hours</h4>
         <div class="val-cyan" id="jobTotalToday">₦0</div>
       </div>
     </div>
-
     <div class="card" style="margin-top:12px">
       <h3>Top Earners</h3>
       <ul class="list" id="jobTopPlayers">
         <li class="muted">Loading…</li>
       </ul>
     </div>
-
     <button class="btn-muted" onclick="closeJobProfile()">Close</button>
   </div>
-
 </section>
-<section data-section="chatlogs" hidden>
 
+<section data-section="chatlogs" hidden>
   <div class="card">
     <h2>Proximity Chat Logs</h2>
     <p class="muted">Trace in-game proximity messages</p>
   </div>
-
   <div class="card">
-
     <div class="grid-2" style="margin-bottom:12px">
       <input id="chatSearchInput" placeholder="Search player name...">
       <button onclick="loadChatLogs()">Search</button>
     </div>
-
     <ul class="list" id="chatLogList">
       <li class="muted">Loading chat logs…</li>
     </ul>
-
     <div style="display:flex;justify-content:space-between;margin-top:12px">
       <button class="btn-muted" onclick="prevChatPage()">Previous</button>
       <span id="chatPageLabel" class="muted">Page 1</span>
       <button class="btn-muted" onclick="nextChatPage()">Next</button>
     </div>
-
   </div>
-
 </section>
-<section data-section="propertylogs" hidden>
 
+<section data-section="propertylogs" hidden>
   <div class="card">
     <h2>Property Logs</h2>
   </div>
-
   <div class="card">
     <ul class="list" id="propertyLogList">
       <li class="muted">Loading property logs…</li>
     </ul>
-
     <div style="display:flex;justify-content:space-between;margin-top:12px">
       <button class="btn-muted" onclick="prevPropertyPage()">Previous</button>
       <span id="propertyPageLabel" class="muted">Page 1</span>
       <button class="btn-muted" onclick="nextPropertyPage()">Next</button>
     </div>
   </div>
-
 </section>
-<section data-section="banlogs" hidden>
 
+<section data-section="banlogs" hidden>
   <div class="card">
     <h2>Ban Logs</h2>
   </div>
-
   <div class="card">
     <ul class="list" id="banLogList">
       <li class="muted">Loading ban logs…</li>
     </ul>
-
     <div style="display:flex;justify-content:space-between;margin-top:12px">
       <button class="btn-muted" onclick="prevBanPage()">Previous</button>
       <span id="banPageLabel" class="muted">Page 1</span>
       <button class="btn-muted" onclick="nextBanPage()">Next</button>
     </div>
   </div>
-
 </section>
-<section data-section="cheatlogs" hidden>
 
+<section data-section="cheatlogs" hidden>
   <div class="card">
     <h2>Cheat Logs</h2>
   </div>
-
   <div class="card">
     <ul class="list" id="cheatLogList">
       <li class="muted">Loading cheat logs…</li>
     </ul>
-
     <div style="display:flex;justify-content:space-between;margin-top:12px">
       <button class="btn-muted" onclick="prevCheatPage()">Previous</button>
       <span id="cheatPageLabel" class="muted">Page 1</span>
       <button class="btn-muted" onclick="nextCheatPage()">Next</button>
     </div>
   </div>
-
 </section>
-<section data-section="contractlogs" hidden>
 
+<section data-section="contractlogs" hidden>
   <div class="card">
     <h2>Contract Logs</h2>
   </div>
-
   <div class="card">
     <ul class="list" id="contractLogList">
       <li class="muted">Loading contract logs…</li>
     </ul>
-
     <div style="display:flex;justify-content:space-between;margin-top:12px">
       <button class="btn-muted" onclick="prevContractPage()">Previous</button>
       <span id="contractPageLabel" class="muted">Page 1</span>
       <button class="btn-muted" onclick="nextContractPage()">Next</button>
     </div>
   </div>
-
 </section>
-<section data-section="givelogs" hidden>
 
+<section data-section="givelogs" hidden>
   <div class="card">
     <h2>Give Logs</h2>
   </div>
-
   <div class="card">
     <ul class="list" id="giveLogList">
       <li class="muted">Loading give logs…</li>
     </ul>
-
     <div style="display:flex;justify-content:space-between;margin-top:12px">
       <button class="btn-muted" onclick="prevGivePage()">Previous</button>
       <span id="givePageLabel" class="muted">Page 1</span>
       <button class="btn-muted" onclick="nextGivePage()">Next</button>
     </div>
   </div>
-
 </section>
-<section data-section="viplogs" hidden>
 
+<section data-section="viplogs" hidden>
   <div class="card">
     <h2>VIP Logs</h2>
   </div>
-
   <div class="card">
     <ul class="list" id="vipLogList">
       <li class="muted">Loading VIP logs…</li>
     </ul>
-
     <div style="display:flex;justify-content:space-between;margin-top:12px">
       <button class="btn-muted" onclick="prevVipPage()">Previous</button>
       <span id="vipPageLabel" class="muted">Page 1</span>
       <button class="btn-muted" onclick="nextVipPage()">Next</button>
     </div>
   </div>
-
 </section>
 
-  
 </main>
 
 <script>
+/* ═══════════════════════════════════════
+   CONFIG: Update this after deploying backend
+   ═══════════════════════════════════════ */
+const API_BASE = "https://soc-production-bc64.up.railway.app";
+
 /* ===============================
    BASIC UI CONTROLS
 ================================ */
 const sidebar = document.getElementById("sidebar");
 const overlay = document.getElementById("overlay");
 const menuBtn = document.getElementById("menuBtn");
-
-const API_BASE = "https://soc-kvmz.onrender.com";
 
 const loading = document.getElementById("playerLoading");
 const clearBtn = document.getElementById("playerClearBtn");
@@ -1110,22 +983,13 @@ let adminSearch = "";
 let factionLogPage = 1;
 let gangLogPage = 1;
 
-// Search button
 document.getElementById("adminSearchBtn").addEventListener("click", () => {
   adminSearch = document.getElementById("adminSearchInput").value.trim();
-  adminLogPage = 1; // reset page on new search
+  adminLogPage = 1;
   loadAdminLogs();
 });
 
-// Enter key support
-document.getElementById("adminSearchInput")
-  .addEventListener("keydown", e => {
-    if (e.key === "Enter") {
-      document.getElementById("adminSearchBtn").click();
-    }
-  });
- 
- document.getElementById("gangNextBtn").onclick = () => {
+document.getElementById("gangNextBtn").onclick = () => {
   gangLogPage++;
   loadGangLogs();
 };
@@ -1154,6 +1018,7 @@ if (factionPrevBtn) {
     }
   };
 }
+
 /* ===============================
    SECTION SWITCHING
 ================================ */
@@ -1204,67 +1069,45 @@ function showSection(name){
     loadAdminLogs();
   }
 
-  /* ✅ THIS WAS MISSING */
   if (name === "jobs") {
     loadJobs();
   }
   
   if (name === "chatlogs") {
-  chatPage = 1;
-  loadChatLogs();
-}
+    chatPage = 1;
+    loadChatLogs();
+  }
 
-if (name === "propertylogs") {
-  propertyPage = 1;
-  loadPropertyLogs();
-}
+  if (name === "propertylogs") {
+    propertyPage = 1;
+    loadPropertyLogs();
+  }
 
-if (name === "contractlogs") {
-  contractPage = 1;
-  loadContractLogs();
-}
+  if (name === "contractlogs") {
+    contractPage = 1;
+    loadContractLogs();
+  }
 
-  if (name === "adminlogs") {
-     adminLogPage = 1;
-     adminSearch = "";
-     document.getElementById("adminSearchInput").value = "";
-     loadAdminLogs();
+  if (name === "givelogs") {
+    givePage = 1;
+    loadGiveLogs();
+  }
+
+  if (name === "banlogs") {
+    banPage = 1;
+    loadBanLogs();
+  }
+
+  if (name === "cheatlogs") {
+    cheatPage = 1;
+    loadCheatLogs();
+  }
+
+  if (name === "viplogs") {
+    vipPage = 1;
+    loadVipLogs();
   }
 }
-
-if (name === "jobs") {
-  loadJobs();
-}
-
-if (name === "givelogs") {
-  givePage = 1;
-  loadGiveLogs();
-}
-
-if (name === "banlogs") {
-  banPage = 1;
-  loadBanLogs();
-}
-
-if (name === "cheatlogs") {
-  cheatPage = 1;
-  loadCheatLogs();
-}
-
-if (name === "viplogs") {
-  vipPage = 1;
-  loadVipLogs();
-}
-
-if (name === "jobs") {
-  loadJobList();
-}
-
-function openGangProfile(gangId) {
-  console.log("Gang profile:", gangId);
-  // later → showSection("gangprofile")
-}
-
 
 /* ===============================
    CHARTS (ECONOMY)
@@ -1299,19 +1142,16 @@ async function loadRichestPlayers() {
     tbody.innerHTML = "";
 
     if (!players.length) {
-      tbody.innerHTML = `
-        <tr>
-          <td colspan="2" class="muted">No data</td>
-        </tr>`;
+      tbody.innerHTML = `<tr><td colspan="2" class="muted">No data</td></tr>`;
       return;
     }
 
     players.forEach(p => {
       const row = document.createElement("tr");
       row.innerHTML = `
-  <td>${p.username}</td>
-  <td class="value-green">${formatMoneyShort(p.total_wealth)}</td>
-`;
+        <td>${p.username}</td>
+        <td class="value-green">${formatMoneyShort(p.total_wealth)}</td>
+      `;
       tbody.appendChild(row);
     });
 
@@ -1333,7 +1173,7 @@ async function loadServerStatus() {
 
     if (!data.online) {
       statusEl.textContent = "Offline";
-      statusEl.className = "val-red";
+      statusEl.className = "val-danger";
       playersEl.textContent = "0 / 0";
       modeEl.textContent = "—";
       hostEl.textContent = "—";
@@ -1359,7 +1199,7 @@ async function loadServerStatus() {
       listEl.innerHTML += `
         <li>
           <span>${p.name}</span>
-          <span class="badge badge-rank">ID ${p.id}</span>
+          <span class="badge badge-rank">Score ${p.score}</span>
         </li>
       `;
     });
@@ -1367,7 +1207,7 @@ async function loadServerStatus() {
   } catch (err) {
     console.error(err);
     statusEl.textContent = "Error";
-    statusEl.className = "val-red";
+    statusEl.className = "val-danger";
     listEl.innerHTML = `<li class="muted">Failed to load server data</li>`;
   }
 }
@@ -1388,26 +1228,23 @@ async function loadJobs() {
   });
 }
   
-  
 async function openJobProfile(jobId, jobName) {
   const card = document.getElementById("jobProfileCard");
   card.hidden = false;
 
   document.getElementById("jobProfileTitle").textContent = jobName;
 
-  // Total (all time)
   const totalRes = await fetch(`${API_BASE}/jobs/total/${jobId}`);
   const totalData = await totalRes.json();
   document.getElementById("jobTotalAll").textContent =
     `₦${totalData.total.toLocaleString()}`;
 
-  // Last 24 hours
-  const todayRes = await fetch(`${API_BASE}/jobs/history?jobid=${jobId}&days=1`);
-  const todayData = await todayRes.json();
+  const todayRes = await fetch(`${API_BASE}/jobs/history?days=1`);
+  const todayRows = await todayRes.json();
+  const todayRow = todayRows.find(r => r.jobid === jobId);
   document.getElementById("jobTotalToday").textContent =
-    `₦${(todayData.total || 0).toLocaleString()}`;
+    `₦${(todayRow?.total || 0).toLocaleString()}`;
 
-  // Top players
   const topList = document.getElementById("jobTopPlayers");
   topList.innerHTML = "";
 
@@ -1452,9 +1289,7 @@ async function loadPropertyLogs() {
       list.innerHTML += `
         <li>
           <div>${log.description}</div>
-          <small class="muted">
-            ${new Date(log.date).toLocaleString()}
-          </small>
+          <small class="muted">${new Date(log.date).toLocaleString()}</small>
         </li>
       `;
     });
@@ -1505,9 +1340,7 @@ async function loadVipLogs() {
       list.innerHTML += `
         <li>
           <div>${log.description}</div>
-          <small class="muted">
-            ${new Date(log.date).toLocaleString()}
-          </small>
+          <small class="muted">${new Date(log.date).toLocaleString()}</small>
         </li>
       `;
     });
@@ -1532,27 +1365,18 @@ function prevVipPage() {
 }
 
 async function payPlayerCash() {
-  const username = document
-    .getElementById("payCashUsername")
-    .value.trim();
-
-  const amount = Number(
-    document.getElementById("payCashAmount").value
-  );
-
-  const reason = document
-    .getElementById("payCashReason")
-    .value.trim();
-
+  const username = document.getElementById("payCashUsername").value.trim();
+  const amount = Number(document.getElementById("payCashAmount").value);
+  const reason = document.getElementById("payCashReason").value.trim();
   const statusEl = document.getElementById("payCashStatus");
   statusEl.textContent = "";
 
   if (!username || !amount || amount <= 0) {
-    statusEl.textContent = " Invalid username or amount";
+    statusEl.textContent = "Invalid username or amount";
     return;
   }
 
-  statusEl.textContent = "Processing payment";
+  statusEl.textContent = "Processing payment…";
 
   try {
     const res = await fetch(`${API_BASE}/admin/pay-cash`, {
@@ -1573,15 +1397,15 @@ async function payPlayerCash() {
       return;
     }
 
-    statusEl.textContent = " Cash paid successfully";
+    statusEl.textContent = "Cash paid successfully";
 
-    // Clear inputs
-    ["payCashUsername", "payCashAmount", "payCashReason"]
-      .forEach(id => (document.getElementById(id).value = ""));
+    ["payCashUsername", "payCashAmount", "payCashReason"].forEach(id => {
+      document.getElementById(id).value = "";
+    });
 
   } catch (err) {
     console.error(err);
-    statusEl.textContent = " Server error";
+    statusEl.textContent = "Server error";
   }
 }
 
@@ -1608,9 +1432,7 @@ async function loadContractLogs() {
       list.innerHTML += `
         <li>
           <div>${log.description}</div>
-          <small class="muted">
-            ${new Date(log.date).toLocaleString()}
-          </small>
+          <small class="muted">${new Date(log.date).toLocaleString()}</small>
         </li>
       `;
     });
@@ -1657,9 +1479,7 @@ async function loadGiveLogs() {
       list.innerHTML += `
         <li>
           <div>${log.description}</div>
-          <small class="muted">
-            ${new Date(log.date).toLocaleString()}
-          </small>
+          <small class="muted">${new Date(log.date).toLocaleString()}</small>
         </li>
       `;
     });
@@ -1692,7 +1512,7 @@ async function loadChatLogs() {
   list.innerHTML = `<li class="muted">Loading…</li>`;
 
   try {
-    const res = await fetch(`${API_BASE}/chat/proximity?search=${search}&page=${chatPage}`);
+    const res = await fetch(`${API_BASE}/chat/proximity?search=${encodeURIComponent(search)}&page=${chatPage}`);
     const data = await res.json();
 
     if (!data.length) {
@@ -1741,9 +1561,7 @@ async function loadGangLogs() {
   list.innerHTML = `<li class="muted">Loading gang logs…</li>`;
 
   try {
-    const res = await fetch(
-      `${API_BASE}/gang/logs?page=${gangLogPage}`
-    );
+    const res = await fetch(`${API_BASE}/gang/logs?page=${gangLogPage}`);
     if (!res.ok) throw new Error("Failed to load");
 
     const data = await res.json();
@@ -1764,9 +1582,7 @@ async function loadGangLogs() {
 
       if (day !== lastDay) {
         list.innerHTML += `
-          <li class="muted" style="font-weight:700;margin-top:10px">
-            ${day}
-          </li>
+          <li class="muted" style="font-weight:700;margin-top:10px">${day}</li>
         `;
         lastDay = day;
       }
@@ -1803,11 +1619,9 @@ async function openFactionProfile(factionId) {
     document.getElementById("factionLeader").textContent = f.leader;
     document.getElementById("factionType").textContent = f.type;
     document.getElementById("factionRanks").textContent = f.rankcount;
-    document.getElementById("factionTokens").textContent =
-      f.turftokens.toLocaleString();
+    document.getElementById("factionTokens").textContent = f.turftokens.toLocaleString();
 
     loadFactionMembers(factionId);
-
     card.scrollIntoView({ behavior: "smooth" });
 
   } catch (err) {
@@ -1898,12 +1712,9 @@ async function loadAdminLogs() {
     logs.forEach(log => {
       const day = getDayLabel(log.date);
 
-      // Day separator
       if (day !== lastDay) {
         list.innerHTML += `
-          <li class="muted" style="font-weight:700;margin-top:10px">
-            ${day}
-          </li>
+          <li class="muted" style="font-weight:700;margin-top:10px">${day}</li>
         `;
         lastDay = day;
       }
@@ -1948,9 +1759,7 @@ async function loadCheatLogs() {
       list.innerHTML += `
         <li>
           <div>${log.description}</div>
-          <small class="muted">
-            ${new Date(log.date).toLocaleString()}
-          </small>
+          <small class="muted">${new Date(log.date).toLocaleString()}</small>
         </li>
       `;
     });
@@ -1997,9 +1806,7 @@ async function loadBanLogs() {
       list.innerHTML += `
         <li>
           <div>${log.description}</div>
-          <small class="muted">
-            ${new Date(log.date).toLocaleString()}
-          </small>
+          <small class="muted">${new Date(log.date).toLocaleString()}</small>
         </li>
       `;
     });
@@ -2026,7 +1833,6 @@ function prevBanPage() {
 async function loadGangMembers(gangId) {
   const membersList = document.getElementById("gangMembersList");
 
-  //  ABSOLUTE SAFETY GUARD
   if (!membersList) {
     console.warn("gangMembersList missing — skipping members load");
     return;
@@ -2073,19 +1879,17 @@ function closeFactionProfile() {
 
 async function loadFactionLogs() {
   const list = document.getElementById("factionLogList");
-const pageLabel = document.getElementById("factionPageLabel");
+  const pageLabel = document.getElementById("factionPageLabel");
 
-if (!list || !pageLabel) {
-  console.warn("Faction log DOM not mounted yet");
-  return;
-}
+  if (!list || !pageLabel) {
+    console.warn("Faction log DOM not mounted yet");
+    return;
+  }
 
   list.innerHTML = `<li class="muted">Loading faction logs…</li>`;
 
   try {
-    const res = await fetch(
-      `${API_BASE}/faction/logs?page=${factionLogPage}`
-    );
+    const res = await fetch(`${API_BASE}/faction/logs?page=${factionLogPage}`);
     if (!res.ok) throw new Error("Failed to load");
 
     const data = await res.json();
@@ -2106,9 +1910,7 @@ if (!list || !pageLabel) {
 
       if (day !== lastDay) {
         list.innerHTML += `
-          <li class="muted" style="font-weight:700;margin-top:10px">
-            ${day}
-          </li>
+          <li class="muted" style="font-weight:700;margin-top:10px">${day}</li>
         `;
         lastDay = day;
       }
@@ -2116,9 +1918,7 @@ if (!list || !pageLabel) {
       list.innerHTML += `
         <li>
           <div>${log.description}</div>
-          <small class="muted">
-            ${new Date(log.date).toLocaleTimeString()}
-          </small>
+          <small class="muted">${new Date(log.date).toLocaleTimeString()}</small>
           <span class="badge badge-action">FACTION</span>
         </li>
       `;
@@ -2183,25 +1983,20 @@ async function loadTopVehicles() {
         indexAxis: "y",
         responsive: true,
         maintainAspectRatio: false,
-
         layout: {
           padding: {
             left: 8,
             right: 16
           }
         },
-
         scales: {
           x: {
-            ticks: {
-              color: "#9ca3af"
-            },
+            ticks: { color: "#9ca3af" },
             grid: { display: false }
           },
-
           y: {
             ticks: {
-              mirror: true,          //  FINAL KEY FIX
+              mirror: true,
               align: "start",
               crossAlign: "near",
               padding: 6,
@@ -2215,7 +2010,6 @@ async function loadTopVehicles() {
             grid: { display: false }
           }
         },
-
         plugins: {
           legend: { display: false },
           tooltip: {
@@ -2253,7 +2047,6 @@ async function loadRichestGangs() {
         <span class="val-green">₦${g.total_wealth.toLocaleString()}</span>
         <span class="badge badge-action">VIEW</span>
       `;
-
       li.onclick = () => openGangProfile(g.id);
       list.appendChild(li);
     });
@@ -2264,49 +2057,7 @@ async function loadRichestGangs() {
   }
 }
 
-async function openJobProfile(jobId, jobName) {
-  document.getElementById("jobProfileCard").hidden = false;
-  document.getElementById("jobProfileTitle").textContent = jobName;
-
-  await loadJobTotals(jobId);
-  await loadJobLast24(jobId);
-
-  // THIS LINE IS CRITICAL
-  await loadJobTopEarners(jobId);
-}
-
-async function loadJobTopEarners(jobId) {
-  const list = document.getElementById("jobTopEarners");
-  list.innerHTML = `<li class="muted">Loading…</li>`;
-
-  try {
-    const res = await fetch(`${API_BASE}/jobs/top/${jobId}`);
-    const data = await res.json();
-
-    if (!data.length) {
-      list.innerHTML = `<li class="muted">No data</li>`;
-      return;
-    }
-
-    list.innerHTML = "";
-
-    data.forEach(p => {
-      list.innerHTML += `
-        <li>
-          <span>${p.username}</span>
-          <span class="val-green">₦${Number(p.total).toLocaleString()}</span>
-        </li>
-      `;
-    });
-
-  } catch (err) {
-    console.error(err);
-    list.innerHTML = `<li class="muted">Failed to load</li>`;
-  }
-}
-
 async function openGangProfile(gangId) {
-  //  prevent overlap
   closeFactionProfile();
 
   const card = document.getElementById("gangProfileCard");
@@ -2316,7 +2067,6 @@ async function openGangProfile(gangId) {
   membersList.innerHTML = `<li class="muted">Loading members…</li>`;
 
   try {
-    // Gang info
     const res = await fetch(`${API_BASE}/gangs/${gangId}`);
     if (!res.ok) throw new Error("Gang not found");
 
@@ -2324,14 +2074,10 @@ async function openGangProfile(gangId) {
 
     document.getElementById("gangName").textContent = g.name;
     document.getElementById("gangLeader").textContent = g.leader;
-    document.getElementById("gangCash").textContent =
-      `₦${g.cash.toLocaleString()}`;
-    document.getElementById("gangMaterials").textContent =
-      g.materials.toLocaleString();
-    document.getElementById("gangTotal").textContent =
-      `₦${g.total_wealth.toLocaleString()}`;
+    document.getElementById("gangCash").textContent = `₦${g.cash.toLocaleString()}`;
+    document.getElementById("gangMaterials").textContent = g.materials.toLocaleString();
+    document.getElementById("gangTotal").textContent = `₦${g.total_wealth.toLocaleString()}`;
 
-    // Members
     const resMembers = await fetch(`${API_BASE}/gangs/${gangId}/members`);
     const members = await resMembers.json();
 
@@ -2354,8 +2100,7 @@ async function openGangProfile(gangId) {
 
   } catch (err) {
     console.error(err);
-    membersList.innerHTML =
-      `<li class="muted">Failed to load members</li>`;
+    membersList.innerHTML = `<li class="muted">Failed to load members</li>`;
   }
 }
 
@@ -2364,23 +2109,19 @@ const themeToggle = document.getElementById("themeToggle");
 function applyTheme(theme) {
   if (theme === "light") {
     document.body.classList.add("light");
-    themeToggle.textContent = "️";
+    themeToggle.textContent = "☀️";
   } else {
     document.body.classList.remove("light");
-    themeToggle.textContent = "";
+    themeToggle.textContent = "🌙";
   }
   localStorage.setItem("theme", theme);
 }
 
-// Toggle click
 themeToggle.onclick = () => {
-  const current = document.body.classList.contains("light")
-    ? "light"
-    : "dark";
+  const current = document.body.classList.contains("light") ? "light" : "dark";
   applyTheme(current === "light" ? "dark" : "light");
 };
 
-// Load saved theme
 window.addEventListener("load", () => {
   const saved = localStorage.getItem("theme") || "dark";
   applyTheme(saved);
@@ -2455,11 +2196,11 @@ async function scheduleEvent() {
     return;
   }
 
-  alert(" Event scheduled successfully");
+  alert("Event scheduled successfully");
 
-  // clear form
-  ["eventName","eventPrize","eventDate","eventMax","eventDesc"]
-    .forEach(id => document.getElementById(id).value = "");
+  ["eventName","eventPrize","eventDate","eventMax","eventDesc"].forEach(id => {
+    document.getElementById(id).value = "";
+  });
 }
 
 document.querySelector("#payWinnerBtn").addEventListener("click", async () => {
@@ -2469,7 +2210,7 @@ document.querySelector("#payWinnerBtn").addEventListener("click", async () => {
   const methodEl = document.querySelector("#payMethod");
 
   if (!methodEl) {
-    alert(" Payment method selector missing");
+    alert("Payment method selector missing");
     return;
   }
 
@@ -2479,13 +2220,6 @@ document.querySelector("#payWinnerBtn").addEventListener("click", async () => {
     alert("Invalid payment details");
     return;
   }
-
-  console.log("Pay winner payload:", {
-    username,
-    amount,
-    method,
-    reason
-  });
 
   const res = await fetch(`${API_BASE}/events/pay-winner`, {
     method: "POST",
@@ -2500,12 +2234,11 @@ document.querySelector("#payWinnerBtn").addEventListener("click", async () => {
   });
 
   const text = await res.text();
-  console.log("Backend response:", text);
 
   try {
     const data = JSON.parse(text);
     if (res.ok) {
-      alert(" Winner paid successfully");
+      alert("Winner paid successfully");
     } else {
       alert(data.error || "Payment failed");
     }
@@ -2531,10 +2264,7 @@ document.getElementById("playerSearchBtn").onclick = async () => {
   loading.hidden = false;
 
   try {
-    /* ===== PLAYER DATA ===== */
-    const res = await fetch(
-      `${API_BASE}/player/${encodeURIComponent(username)}`
-    );
+    const res = await fetch(`${API_BASE}/player/${encodeURIComponent(username)}`);
 
     if (!res.ok) {
       loading.hidden = true;
@@ -2549,9 +2279,7 @@ document.getElementById("playerSearchBtn").onclick = async () => {
 
     document.getElementById("playerName").textContent = p.username;
     document.getElementById("playerFaction").textContent =
-      p.faction_name
-        ? `${p.faction_name} (Rank ${p.factionrank})`
-        : "Civilian";
+      p.faction_name ? `${p.faction_name} (Rank ${p.factionrank})` : "Civilian";
 
     document.getElementById("playerLevel").textContent = p.level;
     document.getElementById("playerHours").textContent = p.hours;
@@ -2559,18 +2287,14 @@ document.getElementById("playerSearchBtn").onclick = async () => {
     document.getElementById("playerBank").textContent = `₦${p.bank}`;
     document.getElementById("playerFleeca").textContent = `₦${p.fleeca ?? 0}`;
 
-    /* ===== VEHICLES ===== */
-    const vehicleRes = await fetch(
-      `${API_BASE}/player/${encodeURIComponent(username)}/vehicles`
-    );
+    const vehicleRes = await fetch(`${API_BASE}/player/${encodeURIComponent(username)}/vehicles`);
     const vehicles = await vehicleRes.json();
 
     const container = document.getElementById("vehicleRows");
     container.innerHTML = "";
 
     if (!vehicles.length) {
-      container.innerHTML =
-        `<div class="table-row"><div>No vehicles</div><div>�</div></div>`;
+      container.innerHTML = `<div class="table-row"><div>No vehicles</div><div>—</div></div>`;
     } else {
       vehicles.forEach(v => {
         const row = document.createElement("div");
@@ -2580,47 +2304,41 @@ document.getElementById("playerSearchBtn").onclick = async () => {
       });
     }
     
-    /* ===== HOUSES ===== */
-const houseRes = await fetch(
-  `${API_BASE}/player/${encodeURIComponent(username)}/houses`
-);
-const houses = await houseRes.json();
+    const houseRes = await fetch(`${API_BASE}/player/${encodeURIComponent(username)}/houses`);
+    const houses = await houseRes.json();
 
-const houseList = document.getElementById("houseList");
-houseList.innerHTML = "";
+    const houseList = document.getElementById("houseList");
+    houseList.innerHTML = "";
 
-if (!houses.length) {
-  houseList.innerHTML = `<li><span>No houses</span></li>`;
-} else {
-  houses.forEach(h => {
-    houseList.innerHTML += `
-      <li>
-        <span>House #${h.id}</span>
-        <span>₦${h.price.toLocaleString()}</span>
-      </li>`;
-  });
-}
+    if (!houses.length) {
+      houseList.innerHTML = `<li><span>No houses</span></li>`;
+    } else {
+      houses.forEach(h => {
+        houseList.innerHTML += `
+          <li>
+            <span>House #${h.id}</span>
+            <span>₦${h.price.toLocaleString()}</span>
+          </li>`;
+      });
+    }
 
-/* ===== BUSINESSES ===== */
-const bizRes = await fetch(
-  `${API_BASE}/player/${encodeURIComponent(username)}/businesses`
-);
-const businesses = await bizRes.json();
+    const bizRes = await fetch(`${API_BASE}/player/${encodeURIComponent(username)}/businesses`);
+    const businesses = await bizRes.json();
 
-const businessList = document.getElementById("businessList");
-businessList.innerHTML = "";
+    const businessList = document.getElementById("businessList");
+    businessList.innerHTML = "";
 
-if (!businesses.length) {
-  businessList.innerHTML = `<li><span>No businesses</span></li>`;
-} else {
-  businesses.forEach(b => {
-    businessList.innerHTML += `
-      <li>
-        <span>${b.name}</span>
-        <span>₦${b.price.toLocaleString()}</span>
-      </li>`;
-  });
-}
+    if (!businesses.length) {
+      businessList.innerHTML = `<li><span>No businesses</span></li>`;
+    } else {
+      businesses.forEach(b => {
+        businessList.innerHTML += `
+          <li>
+            <span>${b.name}</span>
+            <span>₦${b.price.toLocaleString()}</span>
+          </li>`;
+      });
+    }
 
     loading.hidden = true;
 
@@ -2631,8 +2349,6 @@ if (!businesses.length) {
   }
 };
 
-
-
 async function loadEconomy() {
   try {
     const res = await fetch(`${API_BASE}/economy`);
@@ -2640,7 +2356,6 @@ async function loadEconomy() {
 
     const data = await res.json();
 
-    /* === HEADER TOTAL === */
     document.getElementById("ecoCirculation").textContent =
       `₦${Number(data.total).toLocaleString()}`;
 
@@ -2653,7 +2368,6 @@ async function loadEconomy() {
     document.getElementById("ecoTblGovernment").textContent =
       `₦${Number(data.government).toLocaleString()}`;
 
-    /* === DELTA CALC === */
     const delta =
       data.yesterday > 0
         ? ((data.total - data.yesterday) / data.yesterday) * 100
@@ -2671,13 +2385,11 @@ async function loadEconomy() {
 /* ===============================
    ENTER KEY SEARCH
 ================================ */
-document
-  .getElementById("playerSearchInput")
-  .addEventListener("keydown", e => {
-    if (e.key === "Enter") {
-      document.getElementById("playerSearchBtn").click();
-    }
-  });
+document.getElementById("playerSearchInput").addEventListener("keydown", e => {
+  if (e.key === "Enter") {
+    document.getElementById("playerSearchBtn").click();
+  }
+});
 
 document.addEventListener("DOMContentLoaded", () => {
   if (localStorage.getItem("adminUser")) {
@@ -2703,7 +2415,3 @@ document.getElementById("toggleVehicles").onclick = () => {
 
 </body>
 </html>
-
-
-
-
